@@ -19,22 +19,27 @@
       </div>
     </template>
 
+    <div class="mb-4 flex gap-2">
+      <UButton
+        icon="i-lucide-plus"
+        :color="isAddingMode ? 'primary' : 'neutral'"
+        :variant="isAddingMode ? 'solid' : 'soft'"
+        @click="emit('toggle-adding-mode')"
+      >
+      </UButton>
+
+      <UButton
+        icon="i-lucide-hand"
+        :color="!isAddingMode ? 'primary' : 'neutral'"
+        :variant="!isAddingMode ? 'solid' : 'soft'"
+        @click="emit('toggle-adding-mode')"
+      >
+      </UButton>
+    </div>
+
     <AppSettings />
 
-    <UButton
-      class="mt-4"
-      :color="isAddingMode ? 'primary' : 'neutral'"
-      :variant="isAddingMode ? 'solid' : 'soft'"
-      @click="emit('toggleAddingMode')"
-    >
-      {{ isAddingMode ? "Нажмите на карту для добавления" : "Добавить узел" }}
-    </UButton>
-
-    <template #footer>
-      <template v-if="simulator.nodes.length">
-        Нод на карте: {{ simulator.nodes.length }}
-      </template>
-    </template>
+    <template #footer> Нод на карте: {{ simulator.nodes.length }} </template>
   </UCard>
 </template>
 
@@ -46,6 +51,6 @@ defineProps<{
 const simulator = useSimulator();
 
 const emit = defineEmits<{
-  (e: "toggleAddingMode"): void;
+  (e: "toggle-adding-mode"): void;
 }>();
 </script>
