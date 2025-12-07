@@ -1,16 +1,22 @@
 <template>
   <UCard variant="soft">
     <template #header>
-      <UColorModeButton />
+      <div class="flex items-center justify-between">
+        <AppLogo />
 
-      <UButton
-        to="https://github.com/suinly/meshsim"
-        target="_blank"
-        icon="i-simple-icons-github"
-        aria-label="GitHub"
-        color="neutral"
-        variant="ghost"
-      />
+        <div class="flex">
+          <UColorModeButton />
+
+          <UButton
+            to="https://github.com/suinly/meshsim"
+            target="_blank"
+            icon="i-simple-icons-github"
+            aria-label="GitHub"
+            color="neutral"
+            variant="ghost"
+          />
+        </div>
+      </div>
     </template>
 
     <template #footer>

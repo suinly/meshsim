@@ -1,3 +1,3 @@
 <template>
-  <p>Симулятор Mesh</p>
+  <div>Симулятор Mesh</div>
 </template>
