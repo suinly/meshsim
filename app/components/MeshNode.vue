@@ -6,7 +6,10 @@
     @click="onClick"
     @dragend="onDragEnd"
   >
-    <LIcon :icon-size="[30, 30]" :icon-anchor="[15, 15]">
+    <LIcon
+      :icon-size="[30, 30]"
+      :icon-anchor="[15, 15]"
+    >
       <div class="relative w-[30px] h-[30px] flex items-center justify-center">
         <!-- Волна передачи - расходится от ноды -->
         <div
@@ -40,24 +43,24 @@
 </template>
 
 <script setup lang="ts">
-import type { LeafletMouseEvent } from "leaflet";
-import { MeshNode } from "~/simulator/mesh-node";
+import type { LeafletMouseEvent } from 'leaflet'
+import type { MeshNode } from '~/simulator/mesh-node'
 
-defineProps<{ node: MeshNode }>();
+defineProps<{ node: MeshNode }>()
 
 const emit = defineEmits<{
-  (e: "moved", lat: number, lng: number): void;
-  (e: "click"): void;
-}>();
+  (e: 'moved', lat: number, lng: number): void
+  (e: 'click'): void
+}>()
 
 function onDragEnd(event: LeafletMouseEvent) {
-  const { lat, lng } = event.target.getLatLng();
-  emit("moved", lat, lng);
+  const { lat, lng } = event.target.getLatLng()
+  emit('moved', lat, lng)
 }
 
 function onClick(event: LeafletMouseEvent) {
-  event.originalEvent.stopPropagation();
-  emit("click");
+  event.originalEvent.stopPropagation()
+  emit('click')
 }
 </script>
 

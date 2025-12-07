@@ -19,6 +19,8 @@
       </div>
     </template>
 
+    <AppSettings />
+
     <template #footer>
       <UButton
         :color="isAddingMode ? 'primary' : 'neutral'"
@@ -33,10 +35,10 @@
 
 <script setup lang="ts">
 defineProps<{
-  isAddingMode: boolean;
-}>();
+  isAddingMode: boolean
+}>()
 
 const emit = defineEmits<{
-  (e: "toggleAddingMode"): void;
-}>();
+  (e: 'toggleAddingMode'): void
+}>()
 </script>
