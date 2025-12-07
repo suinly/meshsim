@@ -39,7 +39,17 @@
 
     <AppSettings />
 
-    <template #footer> Нод на карте: {{ simulator.nodes.length }} </template>
+    <template #footer>
+      <p>Нод на карте: {{ simulator.nodes.length }}</p>
+      <UButton
+        color="error"
+        class="mt-4"
+        icon="i-lucide-x"
+        :disabled="!simulator.nodes.length"
+        @click="simulator.nodes = []"
+        >Очистить карту</UButton
+      >
+    </template>
   </UCard>
 </template>
 
