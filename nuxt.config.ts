@@ -24,4 +24,12 @@ export default defineNuxtConfig({
   app: {
     baseURL: "/",
   },
+
+  nitro: {
+    prerender: {
+      failOnError: false,
+      crawlLinks: false,
+      routes: ["/"],
+    },
+  },
 });
