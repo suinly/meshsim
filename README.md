@@ -95,6 +95,34 @@ npm run build
 npm run preview
 ```
 
+## Деплой на GitHub Pages
+
+Проект настроен для автоматического деплоя на GitHub Pages через GitHub Actions.
+
+### Настройка
+
+1. Запушьте код в репозиторий на GitHub
+2. Перейдите в Settings → Pages
+3. В разделе "Build and deployment" выберите:
+   - **Source**: GitHub Actions
+4. После пуша в ветку `main` автоматически запустится workflow деплоя
+
+Приложение будет доступно по адресу: `https://<username>.github.io/<repository-name>/`
+
+### Ручной запуск
+
+Деплой можно запустить вручную:
+1. Перейдите в Actions → Deploy to GitHub Pages
+2. Нажмите "Run workflow"
+
+### Локальная настройка baseURL
+
+Для локальной разработки с кастомным baseURL:
+
+```bash
+NUXT_APP_BASE_URL=/my-custom-path/ npm run dev
+```
+
 ## Лицензия
 
 MIT
