@@ -88,8 +88,11 @@ npm run typecheck
 # Линтер
 npm run lint
 
-# Сборка для production
+# Сборка для production (SSR режим)
 npm run build
+
+# Генерация статического сайта (для GitHub Pages)
+npm run generate
 
 # Просмотр production сборки
 npm run preview
