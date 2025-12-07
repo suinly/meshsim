@@ -6,10 +6,7 @@
     @click="onClick"
     @dragend="onDragEnd"
   >
-    <LIcon
-      :icon-size="[30, 30]"
-      :icon-anchor="[15, 15]"
-    >
+    <LIcon :icon-size="[30, 30]" :icon-anchor="[15, 15]">
       <div class="relative w-[30px] h-[30px] flex items-center justify-center">
         <!-- Волна передачи - расходится от ноды -->
         <div
@@ -27,13 +24,14 @@
           class="receive-ring absolute inset-0 flex items-center justify-center"
         >
           <div
-            class="w-6 h-6 bg-blue-400 rounded-full border-2 border-blue-400"
+            class="w-6 h-6 bg-green-400 rounded-full border-2 border-green-400"
           />
         </div>
 
         <!-- Сама нода -->
         <div
           class="w-6 h-6 rounded-full shadow-lg relative z-10 text-center text-black font-bold text-xs/6 bg-green-400"
+          :class="{ 'outline outline-blue-400': node.isSelected }"
         >
           {{ node.id }}
         </div>
@@ -43,24 +41,30 @@
 </template>
 
 <script setup lang="ts">
-import type { LeafletMouseEvent } from 'leaflet'
-import type { MeshNode } from '~/simulator/mesh-node'
+import type { LeafletMouseEvent } from "leaflet";
+import type { MeshNode } from "~/simulator/mesh-node";
 
-defineProps<{ node: MeshNode }>()
+const props = defineProps<{ node: MeshNode }>();
 
 const emit = defineEmits<{
-  (e: 'moved', lat: number, lng: number): void
-  (e: 'click'): void
-}>()
+  (e: "moved", lat: number, lng: number): void;
+  (e: "click"): void;
+}>();
 
 function onDragEnd(event: LeafletMouseEvent) {
-  const { lat, lng } = event.target.getLatLng()
-  emit('moved', lat, lng)
+  const { lat, lng } = event.target.getLatLng();
+  emit("moved", lat, lng);
 }
 
 function onClick(event: LeafletMouseEvent) {
-  event.originalEvent.stopPropagation()
-  emit('click')
+  event.originalEvent.stopPropagation();
+
+  if (event.originalEvent.metaKey || event.originalEvent.ctrlKey) {
+    props.node.isSelected = !props.node.isSelected;
+    return;
+  }
+
+  emit("click");
 }
 </script>
 
@@ -84,7 +88,7 @@ function onClick(event: LeafletMouseEvent) {
     opacity: 0.8;
   }
   50% {
-    transform: scale(1.5);
+    transform: scale(1.3);
     opacity: 0.4;
   }
   100% {

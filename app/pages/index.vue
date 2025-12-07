@@ -5,11 +5,13 @@
       :is-adding-mode="isAddingMode"
       @click="handleMapClick"
     >
-      <MeshNode
+      <MeshNodeMarker
         v-for="node in simulator.nodes"
         :key="node.id"
         :node="node"
-        @moved="(lat: number, lng: number) => simulator.moveNode(node, lat, lng)"
+        @moved="
+          (lat: number, lng: number) => simulator.moveNode(node, lat, lng)
+        "
         @click="simulator.transmitFromNode(node)"
       />
     </MeshMap>
@@ -22,19 +24,18 @@
 </template>
 
 <script setup lang="ts">
-import { MeshSimulator } from '~/simulator/mesh-simulator'
+const simulator = useSimulator();
+const { hopLimit } = useSimulatorSettings();
 
-const simulator = reactive(new MeshSimulator())
-const isAddingMode = ref(false)
-const { hopLimit } = useSimulatorSettings()
+const isAddingMode = ref(true);
 
-function toggleAddingMode() {
-  isAddingMode.value = !isAddingMode.value
-}
+const toggleAddingMode = () => {
+  isAddingMode.value = !isAddingMode.value;
+};
 
-function handleMapClick(lat: number, lng: number) {
+const handleMapClick = (lat: number, lng: number) => {
   if (isAddingMode.value) {
-    simulator.addNode(lat, lng, hopLimit.value)
+    simulator.addNode(lat, lng, hopLimit.value);
   }
-}
+};
 </script>

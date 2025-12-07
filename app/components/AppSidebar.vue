@@ -21,24 +21,31 @@
 
     <AppSettings />
 
+    <UButton
+      class="mt-4"
+      :color="isAddingMode ? 'primary' : 'neutral'"
+      :variant="isAddingMode ? 'solid' : 'soft'"
+      @click="emit('toggleAddingMode')"
+    >
+      {{ isAddingMode ? "Нажмите на карту для добавления" : "Добавить узел" }}
+    </UButton>
+
     <template #footer>
-      <UButton
-        :color="isAddingMode ? 'primary' : 'neutral'"
-        :variant="isAddingMode ? 'solid' : 'soft'"
-        @click="emit('toggleAddingMode')"
-      >
-        {{ isAddingMode ? "Нажмите на карту для добавления" : "Добавить узел" }}
-      </UButton>
+      <template v-if="simulator.nodes.length">
+        Нод на карте: {{ simulator.nodes.length }}
+      </template>
     </template>
   </UCard>
 </template>
 
 <script setup lang="ts">
 defineProps<{
-  isAddingMode: boolean
-}>()
+  isAddingMode: boolean;
+}>();
+
+const simulator = useSimulator();
 
 const emit = defineEmits<{
-  (e: 'toggleAddingMode'): void
-}>()
+  (e: "toggleAddingMode"): void;
+}>();
 </script>
