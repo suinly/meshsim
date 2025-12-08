@@ -25,16 +25,14 @@
         :color="isAddingMode ? 'primary' : 'neutral'"
         :variant="isAddingMode ? 'solid' : 'soft'"
         @click="emit('toggle-adding-mode')"
-      >
-      </UButton>
+      />
 
       <UButton
         icon="i-lucide-hand"
         :color="!isAddingMode ? 'primary' : 'neutral'"
         :variant="!isAddingMode ? 'solid' : 'soft'"
         @click="emit('toggle-adding-mode')"
-      >
-      </UButton>
+      />
     </div>
 
     <AppSettings />
@@ -47,8 +45,9 @@
         icon="i-lucide-x"
         :disabled="!simulator.nodes.length"
         @click="simulator.nodes = []"
-        >Очистить карту</UButton
       >
+        Очистить карту
+      </UButton>
     </template>
   </UCard>
 </template>

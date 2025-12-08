@@ -24,18 +24,18 @@
 </template>
 
 <script setup lang="ts">
-const simulator = useSimulator();
-const { hopLimit } = useSimulatorSettings();
+const simulator = useSimulator()
+const { hopLimit } = useSimulatorSettings()
 
-const isAddingMode = ref(true);
+const isAddingMode = ref(true)
 
 const toggleAddingMode = () => {
-  isAddingMode.value = !isAddingMode.value;
-};
+  isAddingMode.value = !isAddingMode.value
+}
 
 const handleMapClick = (lat: number, lng: number) => {
   if (isAddingMode.value) {
-    simulator.addNode(lat, lng, hopLimit.value);
+    simulator.addNode(lat, lng, hopLimit.value)
   }
-};
+}
 </script>
