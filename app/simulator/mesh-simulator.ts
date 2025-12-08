@@ -100,6 +100,15 @@ export class MeshSimulator {
           return; // Пакет потерян из-за плохого SNR
         }
 
+        // Ставим статус получения
+        if (!targetNode.isTransmitting) {
+          targetNode.isReceiving = true;
+
+          setTimeout(() => {
+            targetNode.isReceiving = false;
+          }, 600);
+        }
+
         // Проверяем, видели ли уже этот пакет
         const alreadySeen = targetNode.seenPackets.includes(packet.id);
 
@@ -113,13 +122,6 @@ export class MeshSimulator {
           );
           return;
         }
-
-        // Ставим статус получения
-        targetNode.isReceiving = true;
-
-        setTimeout(() => {
-          targetNode.isReceiving = false;
-        }, 600);
 
         // Узел в зоне досягаемости - переотправить через задержку
         // Задержка зависит от SNR (как в Meshtastic)
