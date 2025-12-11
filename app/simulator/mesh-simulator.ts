@@ -167,7 +167,7 @@ export class MeshSimulator {
 
           if (!targetNode.isTransmitting) {
             this.logger.success(
-              `Ретрансляция: hopLimit ${newPacket.hopCount}, SNR: ${snr.toFixed(1)} dB, задержка: ${retransmissionDelay.toFixed(0)}мс`,
+              `Ретрансляция: hopCount ${newPacket.hopCount}, SNR: ${snr.toFixed(1)} dB, задержка: ${retransmissionDelay.toFixed(0)}мс`,
               targetNode,
             );
             this.transmitFromNode(targetNode, newPacket);
