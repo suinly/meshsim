@@ -15,7 +15,10 @@
         @click="simulator.transmitFromNode(node)"
       />
     </MeshMap>
-    <AppSidebar />
+    <AppSidebar
+      class="fixed z-999 h-screen overflow-y-auto p-4 w-[320px] top-0 right-0"
+    />
+    <AppFooter class="fixed z-999 h-[300px] p-4 w-full bottom-0" />
   </div>
 </template>
 

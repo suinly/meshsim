@@ -1,20 +1,21 @@
 <template>
-  <div
-    ref="logContainer"
-    class="text-sm flex flex-col gap-1 overflow-y-auto max-h-full"
-  >
-    <div v-for="log in logger.storage" class="flex gap-2">
-      <UBadge :color="log.type" variant="outline">{{
-        formatDate(log.createdAt)
-      }}</UBadge>
-      <UBadge
-        :color="getColorByNode(log.node)"
-        variant="outline"
-        v-if="log.node"
-        >{{ log.node.id }}</UBadge
+  <div ref="logContainer" class="flex flex-col gap-1 overflow-y-auto">
+    <div v-for="log in logger.storage" class="font-mono text-xs">
+      <span
+        :class="{
+          'text-red-400': log.type === 'error',
+          'text-orange-400': log.type === 'warning',
+          'text-green-400': log.type === 'success',
+        }"
       >
-
-      <span>{{ log.message }}</span>
+        [{{ formatDate(log.createdAt) }}]
+      </span>
+      <span :class="getColorByNode(log.node)" v-if="log.node">
+        [{{ log.node.id }}]
+      </span>
+      <span>
+        {{ log.message }}
+      </span>
     </div>
   </div>
 </template>
@@ -38,13 +39,16 @@ watch(
 );
 
 const formatDate = (date: Date) => {
-  return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 };
 
 const getColorByNode = (node: MeshNode) => {
-  if (node.role === MeshNodeRole.CLIENT) return "warning";
-  if (node.role === MeshNodeRole.CLIENT_MUTE) return "info";
-  if (node.role === MeshNodeRole.ROUTER) return "error";
+  if (node.role === MeshNodeRole.CLIENT) return "text-yellow-400";
+  if (node.role === MeshNodeRole.CLIENT_MUTE) return "text-blue-400";
+  if (node.role === MeshNodeRole.ROUTER) return "text-red-400";
 
   return "neutral";
 };

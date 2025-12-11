@@ -24,17 +24,11 @@ export class MeshSimulator {
     const node = new MeshNode(id, lat, lng, hopLimit, role);
 
     this.nodes.push(node);
-
-    this.logger.success("Добавлена нода", node);
   }
 
   public moveNode(node: MeshNode, lat: number, lng: number) {
-    const index = this.findNodeIndexById(node.id);
-
-    if (!this.nodes[index]) return;
-
-    this.nodes[index].lat = lat;
-    this.nodes[index].lng = lng;
+    node.lat = lat;
+    node.lng = lng;
   }
 
   public transmitFromNode(node: MeshNode, packet?: MeshPacket, retryCount = 0) {
@@ -60,16 +54,18 @@ export class MeshSimulator {
       if (retryCount < 5) {
         // Экспоненциальная задержка с jitter
         const backoffDelay = Math.random() * Math.pow(2, retryCount) * 100;
-        console.log(
-          `Канал занят для узла ${node.id}, повтор через ${backoffDelay.toFixed(0)}мс (попытка ${retryCount + 1})`,
+        this.logger.warning(
+          `Канал занят, повтор через ${backoffDelay.toFixed(0)}мс (попытка ${retryCount + 1})`,
+          node,
         );
         setTimeout(() => {
           this.transmitFromNode(node, packet, retryCount + 1);
         }, backoffDelay);
         return;
       } else {
-        console.log(
-          `Канал занят для узла ${node.id}, достигнуто максимальное количество попыток, пакет отброшен`,
+        this.logger.warning(
+          `Канал занят, достигнуто максимальное количество попыток, пакет отброшен`,
+          node,
         );
         return;
       }
@@ -78,7 +74,7 @@ export class MeshSimulator {
     // Включаем передачу пакета
     this.nodes[index].isTransmitting = true;
 
-    console.log("Передача: ", node.id);
+    this.logger.success(`Передача пакета #${packet.id}`, node);
 
     // Выключаем через 1 секунду
     setTimeout(() => {
@@ -110,8 +106,9 @@ export class MeshSimulator {
 
         // Симуляция потери пакетов
         if (Math.random() > receptionProbability) {
-          console.log(
-            `Пакет потерян: узел ${sourceNode.id} -> ${targetNode.id}, SNR: ${snr.toFixed(1)} dB, вероятность: ${(receptionProbability * 100).toFixed(0)}%`,
+          this.logger.error(
+            `Пакет потерян, SNR: ${snr.toFixed(1)} dB, вероятность: ${(receptionProbability * 100).toFixed(0)}%`,
+            targetNode,
           );
           return; // Пакет потерян из-за плохого SNR
         }
@@ -145,9 +142,7 @@ export class MeshSimulator {
 
         // Если уже видели - не планируем новую ретрансляцию
         if (alreadySeen) {
-          console.log(
-            `Дубликат пакета: узел ${targetNode.id} получил пакет ${packet.id} повторно`,
-          );
+          this.logger.warning(`Дубликат пакета #${packet.id}`, targetNode);
           return;
         }
 
@@ -163,15 +158,17 @@ export class MeshSimulator {
           ).length;
 
           if (seenCount > 1) {
-            console.log(
-              `Подавление ретрансляции: узел ${targetNode.id} получил пакет ${newPacket.id} ${seenCount} раз`,
+            this.logger.warning(
+              `Отмена ретрансляции: пакет #${newPacket.id} получен ${seenCount} раз`,
+              targetNode,
             );
             return;
           }
 
           if (!targetNode.isTransmitting) {
-            console.log(
-              `Ретрансляция: узел ${targetNode.id}, хоп ${newPacket.hopCount}, SNR: ${snr.toFixed(1)} dB, задержка: ${retransmissionDelay.toFixed(0)}мс`,
+            this.logger.success(
+              `Ретрансляция: hopLimit ${newPacket.hopCount}, SNR: ${snr.toFixed(1)} dB, задержка: ${retransmissionDelay.toFixed(0)}мс`,
+              targetNode,
             );
             this.transmitFromNode(targetNode, newPacket);
           }
