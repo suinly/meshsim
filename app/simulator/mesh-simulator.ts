@@ -1,15 +1,31 @@
-import { MeshNode } from "./mesh-node";
+import type { MeshLogger } from "./mesh-logger";
+import { MeshNode, MeshNodeRole } from "./mesh-node";
 import { MeshPacket } from "./mesh-packet";
+
+export enum MeshSimulatorMode {
+  ADD,
+  VIEW,
+}
 
 export class MeshSimulator {
   public nodes: MeshNode[] = [];
   public packetCount: number = 0;
+  public mode: MeshSimulatorMode = MeshSimulatorMode.ADD;
 
-  public addNode(lat: number, lng: number, hopLimit: number = 3) {
+  constructor(public logger: MeshLogger) {}
+
+  public addNode(
+    lat: number,
+    lng: number,
+    hopLimit: number = 3,
+    role: MeshNodeRole = MeshNodeRole.CLIENT,
+  ) {
     const id = this.nodes.length + 1;
-    const node = new MeshNode(id, lat, lng, hopLimit);
+    const node = new MeshNode(id, lat, lng, hopLimit, role);
 
     this.nodes.push(node);
+
+    this.logger.success("Добавлена нода", node);
   }
 
   public moveNode(node: MeshNode, lat: number, lng: number) {
@@ -109,11 +125,23 @@ export class MeshSimulator {
           }, 600);
         }
 
+        // если роль CLIENT_MUTE, то не ретранслируем
+        if (targetNode.role === MeshNodeRole.CLIENT_MUTE) return;
+
         // Проверяем, видели ли уже этот пакет
         const alreadySeen = targetNode.seenPackets.includes(packet.id);
 
         // Всегда добавляем в seenPackets (даже если видели повторно)
         targetNode.seenPackets.push(packet.id);
+
+        // Если роль ROUTER, ретранслируем сразу, если не уже
+        if (
+          targetNode.role === MeshNodeRole.ROUTER &&
+          !targetNode.isTransmitting
+        ) {
+          this.transmitFromNode(targetNode, newPacket);
+          return;
+        }
 
         // Если уже видели - не планируем новую ретрансляцию
         if (alreadySeen) {
