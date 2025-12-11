@@ -4,7 +4,7 @@
       <span
         :class="{
           'text-red-400': log.type === 'error',
-          'text-orange-400': log.type === 'warning',
+          'text-yellow-400': log.type === 'warning',
           'text-green-400': log.type === 'success',
         }"
       >
