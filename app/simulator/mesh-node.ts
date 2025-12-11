@@ -1,3 +1,9 @@
+export enum MeshNodeRole {
+  CLIENT,
+  CLIENT_MUTE,
+  ROUTER,
+}
+
 export class MeshNode {
   public isTransmitting: boolean = false;
   public isReceiving: boolean = false;
@@ -9,5 +15,6 @@ export class MeshNode {
     public lat: number,
     public lng: number,
     public hopLimit: number = 3,
+    public role: MeshNodeRole = MeshNodeRole.CLIENT,
   ) {}
 }

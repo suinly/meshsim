@@ -14,7 +14,15 @@
           class="wave-expand absolute inset-0 flex items-center justify-center"
         >
           <div
-            class="w-6 h-6 bg-green-400 rounded-full border-2 border-green-400"
+            class="w-6 h-6 rounded-full border-2"
+            :class="{
+              'bg-warning-400 border-warning-400':
+                node.role === MeshNodeRole.CLIENT,
+              'bg-secondary-400 border-secondary-400':
+                node.role === MeshNodeRole.CLIENT_MUTE,
+              'bg-error-400 border-error-400':
+                node.role === MeshNodeRole.ROUTER,
+            }"
           />
         </div>
 
@@ -24,14 +32,27 @@
           class="receive-ring absolute inset-0 flex items-center justify-center"
         >
           <div
-            class="w-6 h-6 bg-green-400 rounded-full border-2 border-green-400"
+            class="w-6 h-6 rounded-full border-2"
+            :class="{
+              'bg-warning-400 border-warning-400':
+                node.role === MeshNodeRole.CLIENT,
+              'bg-secondary-400 border-secondary-400':
+                node.role === MeshNodeRole.CLIENT_MUTE,
+              'bg-error-400 border-error-400':
+                node.role === MeshNodeRole.ROUTER,
+            }"
           />
         </div>
 
         <!-- Сама нода -->
         <div
-          class="w-6 h-6 rounded-full shadow-lg relative z-10 text-center text-black font-bold text-xs/6 bg-green-400"
-          :class="{ 'outline outline-blue-400': node.isSelected }"
+          class="w-6 h-6 rounded-full shadow-lg relative z-10 text-center text-black font-bold text-xs/6"
+          :class="{
+            'bg-warning-400': node.role === MeshNodeRole.CLIENT,
+            'bg-secondary-400': node.role === MeshNodeRole.CLIENT_MUTE,
+            'bg-error-400': node.role === MeshNodeRole.ROUTER,
+            'outline outline-blue-400': node.isSelected,
+          }"
         >
           {{ node.id }}
         </div>
@@ -42,7 +63,7 @@
 
 <script setup lang="ts">
 import type { LeafletMouseEvent } from "leaflet";
-import type { MeshNode } from "~/simulator/mesh-node";
+import { MeshNodeRole, type MeshNode } from "~/simulator/mesh-node";
 
 const props = defineProps<{ node: MeshNode }>();
 

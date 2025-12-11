@@ -1,6 +1,8 @@
 <template>
-  <UCard variant="soft">
-    <template #header>
+  <div class="fixed z-999 h-screen overflow-y-auto p-4 w-[320px] top-0 right-0">
+    <div
+      class="h-full flex flex-col gap-4 rounded-lg overflow-hidden bg-elevated/50 divide-y divide-default w-full p-4"
+    >
       <div class="flex items-center justify-between">
         <AppLogo />
 
@@ -17,49 +19,9 @@
           />
         </div>
       </div>
-    </template>
-
-    <div class="mb-4 flex gap-2">
-      <UButton
-        icon="i-lucide-plus"
-        :color="isAddingMode ? 'primary' : 'neutral'"
-        :variant="isAddingMode ? 'solid' : 'soft'"
-        @click="emit('toggle-adding-mode')"
-      />
-
-      <UButton
-        icon="i-lucide-hand"
-        :color="!isAddingMode ? 'primary' : 'neutral'"
-        :variant="!isAddingMode ? 'solid' : 'soft'"
-        @click="emit('toggle-adding-mode')"
-      />
+      <AppControls />
+      <AppSettings />
+      <MeshLogViewer class="flex-1" />
     </div>
-
-    <AppSettings />
-
-    <template #footer>
-      <p>Нод на карте: {{ simulator.nodes.length }}</p>
-      <UButton
-        color="error"
-        class="mt-4"
-        icon="i-lucide-x"
-        :disabled="!simulator.nodes.length"
-        @click="simulator.nodes = []"
-      >
-        Очистить карту
-      </UButton>
-    </template>
-  </UCard>
+  </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  isAddingMode: boolean;
-}>();
-
-const simulator = useSimulator();
-
-const emit = defineEmits<{
-  (e: "toggle-adding-mode"): void;
-}>();
-</script>
