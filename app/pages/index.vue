@@ -25,8 +25,14 @@
 <script setup lang="ts">
 import { MeshSimulatorMode } from "~/simulator/mesh-simulator";
 
-const { simulator } = useSimulator();
+const { simulator, logger } = useSimulator();
 const { hopLimit, defaultRole } = useSimulatorSettings();
+
+onMounted(() => {
+  logger.warning(
+    "ВНИМАНИЕ! На данный момент симулятор в стадии активной разработки и алгоритм его работы далек от Meshtastic или любого другого протокола. Все совпадения случайны!",
+  );
+});
 
 const handleMapClick = (lat: number, lng: number) => {
   if (simulator.mode == MeshSimulatorMode.ADD) {
