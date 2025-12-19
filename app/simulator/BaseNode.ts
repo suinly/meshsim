@@ -52,7 +52,7 @@ export abstract class BaseNode {
     this.markPacketReceived(packet);
     const alreadyHeard = this.heardReboardcast(packet);
     this.logger.info(
-      `Пакет #${packet.id} получен ${alreadyHeard ? "повторно, отмена запланированной ретрансляции" : ""}`,
+      `Пакет #${packet.id} получен ${alreadyHeard ? "повторно" : ""}`,
       this,
     );
   }
