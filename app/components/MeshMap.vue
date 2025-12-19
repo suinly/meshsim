@@ -1,5 +1,8 @@
 <template>
-  <div class="mesh-map-wrapper" :class="{ 'adding-node-mode': isAddingMode }">
+  <div
+    class="mesh-map-wrapper"
+    :class="{ 'adding-node-mode': isAddingMode }"
+  >
     <LMap
       :zoom="11"
       :center="[59.938784, 30.314997]"
@@ -8,7 +11,7 @@
     >
       <LTileLayer
         :url="tileLayerUrl"
-        attribution='&amp;copy; <a href="https://carto.com/attributions">CARTO</a>'
+        attribution="&amp;copy; <a href=&quot;https://carto.com/attributions&quot;>CARTO</a>"
       />
 
       <slot />
@@ -17,28 +20,28 @@
 </template>
 
 <script setup lang="ts">
-import type { LeafletMouseEvent } from "leaflet";
+import type { LeafletMouseEvent } from 'leaflet'
 
 defineProps<{
-  isAddingMode?: boolean;
-}>();
+  isAddingMode?: boolean
+}>()
 
 const emit = defineEmits<{
-  (e: "click", lat: number, lng: number): void;
-}>();
+  (e: 'click', lat: number, lng: number): void
+}>()
 
-const colorMode = useColorMode();
+const colorMode = useColorMode()
 
 const tileLayerUrl = computed(() => {
-  return colorMode.value === "dark"
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-});
+  return colorMode.value === 'dark'
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+})
 
 const onMapClick = (event: LeafletMouseEvent) => {
-  const { lat, lng } = event.latlng;
-  emit("click", lat, lng);
-};
+  const { lat, lng } = event.latlng
+  emit('click', lat, lng)
+}
 </script>
 
 <style>

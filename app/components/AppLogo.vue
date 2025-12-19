@@ -1,3 +1,5 @@
 <template>
-  <div class="font-bold">Симулятор Mesh</div>
+  <div class="font-bold">
+    Симулятор Mesh
+  </div>
 </template>

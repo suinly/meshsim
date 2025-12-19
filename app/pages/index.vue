@@ -2,7 +2,7 @@
   <div>
     <MeshMap
       style="height: 100vh"
-      :is-adding-mode="simulator.mode == MeshSimulatorMode.ADD"
+      :is-adding-mode="simulator.mode == SimulatorMode.ADD"
       @click="handleMapClick"
     >
       <MeshNodeMarker
@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { MeshSimulatorMode } from "~/simulator/mesh-simulator";
+import { SimulatorMode } from "~/simulator/SimulatorMode";
 
 const { simulator, logger } = useSimulator();
 const { hopLimit, defaultRole } = useSimulatorSettings();
@@ -35,8 +35,8 @@ onMounted(() => {
 });
 
 const handleMapClick = (lat: number, lng: number) => {
-  if (simulator.mode == MeshSimulatorMode.ADD) {
-    simulator.addNode(lat, lng, hopLimit.value, defaultRole.value);
+  if (simulator.mode == SimulatorMode.ADD) {
+    simulator.addNode(lat, lng, hopLimit.value, 20, defaultRole.value);
   }
 };
 </script>

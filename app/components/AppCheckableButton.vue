@@ -15,21 +15,21 @@
 
 <script setup lang="ts">
 const {
-  color = "primary",
+  color = 'primary',
   icon,
   checked = false,
-  tooltip,
+  tooltip
 } = defineProps<{
-  icon: string;
+  icon: string
   color?:
-    | "error"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "info"
-    | "warning"
-    | "neutral";
-  checked?: boolean;
-  tooltip?: string;
-}>();
+    | 'error'
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'info'
+    | 'warning'
+    | 'neutral'
+  checked?: boolean
+  tooltip?: string
+}>()
 </script>

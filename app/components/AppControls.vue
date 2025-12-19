@@ -4,14 +4,14 @@
       <AppCheckableButton
         icon="i-lucide-plus"
         tooltip="Режим добавления узлов"
-        :checked="simulator.mode == MeshSimulatorMode.ADD"
-        @click="simulator.mode = MeshSimulatorMode.ADD"
+        :checked="simulator.mode == SimulatorMode.ADD"
+        @click="simulator.mode = SimulatorMode.ADD"
       />
       <AppCheckableButton
         icon="i-lucide-hand"
         tooltip="Режим просмотра"
-        :checked="simulator.mode == MeshSimulatorMode.VIEW"
-        @click="simulator.mode = MeshSimulatorMode.VIEW"
+        :checked="simulator.mode == SimulatorMode.VIEW"
+        @click="simulator.mode = SimulatorMode.VIEW"
       />
 
       <UTooltip
@@ -25,43 +25,46 @@
           icon="i-lucide-x"
           :disabled="!simulator.nodes.length"
           @click="clearNodes"
-        >
-        </UButton
-      ></UTooltip>
+        />
+      </UTooltip>
     </div>
 
-    <div class="flex gap-2 mt-4" v-if="simulator.mode == MeshSimulatorMode.ADD">
+    <div v-if="simulator.mode == SimulatorMode.ADD" class="flex gap-2 mt-4">
       <AppCheckableButton
         icon="i-lucide-circle-dot"
         tooltip="CLIENT"
         color="warning"
-        :checked="defaultRole == MeshNodeRole.CLIENT"
-        @click="defaultRole = MeshNodeRole.CLIENT"
+        :checked="defaultRole == NodeRole.CLIENT"
+        @click="changeDefaultRole(NodeRole.CLIENT)"
       />
       <AppCheckableButton
         icon="i-lucide-circle-x"
         tooltip="CLIENT_MUTE"
         color="secondary"
-        :checked="defaultRole == MeshNodeRole.CLIENT_MUTE"
-        @click="defaultRole = MeshNodeRole.CLIENT_MUTE"
+        :checked="defaultRole == NodeRole.CLIENT_MUTE"
+        @click="changeDefaultRole(NodeRole.CLIENT_MUTE)"
       />
       <AppCheckableButton
         icon="i-lucide-circle-alert"
         tooltip="ROUTER"
         color="error"
-        :checked="defaultRole == MeshNodeRole.ROUTER"
-        @click="defaultRole = MeshNodeRole.ROUTER"
+        :checked="defaultRole == NodeRole.ROUTER"
+        @click="changeDefaultRole(NodeRole.ROUTER)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { MeshNodeRole } from "~/simulator/mesh-node";
-import { MeshSimulatorMode } from "~/simulator/mesh-simulator";
+import { NodeRole } from "~/simulator/NodeRole";
+import { SimulatorMode } from "~/simulator/SimulatorMode";
 
 const { simulator, logger } = useSimulator();
 const { defaultRole } = useSimulatorSettings();
+
+const changeDefaultRole = (role: NodeRole) => {
+  defaultRole.value = role;
+};
 
 const clearNodes = () => {
   simulator.nodes = [];

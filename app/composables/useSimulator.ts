@@ -1,20 +1,20 @@
-import { MeshLogger } from "~/simulator/mesh-logger";
-import { MeshSimulator } from "~/simulator/mesh-simulator";
+import { Logger } from "~/simulator/Logger";
+import { Simulator } from "~/simulator/Simulator";
 
-let simulator: MeshSimulator | null = null;
-let logger: MeshLogger | null = null;
+let simulator: Simulator | null = null;
+let logger: Logger | null = null;
 
 export const useSimulator = () => {
   if (!logger) {
-    logger = new MeshLogger();
+    logger = new Logger();
   }
 
   if (!simulator) {
-    simulator = new MeshSimulator(logger);
+    simulator = new Simulator(logger);
   }
 
   return {
-    simulator: reactive(simulator) as MeshSimulator,
-    logger: reactive(logger) as MeshLogger,
+    simulator: reactive(simulator) as Simulator,
+    logger: reactive(logger) as Logger,
   };
 };

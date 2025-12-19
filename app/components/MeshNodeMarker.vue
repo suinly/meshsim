@@ -10,36 +10,34 @@
       <div class="relative w-[30px] h-[30px] flex items-center justify-center">
         <!-- Волна передачи - расходится от ноды -->
         <div
-          v-if="node.isTransmitting"
+          v-if="node.state === NodeState.TRANSMITING"
           class="wave-expand absolute inset-0 flex items-center justify-center"
         >
           <div
             class="w-6 h-6 rounded-full border-2"
             :class="{
               'bg-warning-400 border-warning-400':
-                node.role === MeshNodeRole.CLIENT,
+                node.role === NodeRole.CLIENT,
               'bg-secondary-400 border-secondary-400':
-                node.role === MeshNodeRole.CLIENT_MUTE,
-              'bg-error-400 border-error-400':
-                node.role === MeshNodeRole.ROUTER,
+                node.role === NodeRole.CLIENT_MUTE,
+              'bg-error-400 border-error-400': node.role === NodeRole.ROUTER,
             }"
           />
         </div>
 
-        <!-- Эффект приема - синее кольцо -->
+        <!-- Эффект приема -->
         <div
-          v-if="node.isReceiving"
+          v-if="node.state === NodeState.RECEIVING"
           class="receive-ring absolute inset-0 flex items-center justify-center"
         >
           <div
             class="w-6 h-6 rounded-full border-2"
             :class="{
               'bg-warning-400 border-warning-400':
-                node.role === MeshNodeRole.CLIENT,
+                node.role === NodeRole.CLIENT,
               'bg-secondary-400 border-secondary-400':
-                node.role === MeshNodeRole.CLIENT_MUTE,
-              'bg-error-400 border-error-400':
-                node.role === MeshNodeRole.ROUTER,
+                node.role === NodeRole.CLIENT_MUTE,
+              'bg-error-400 border-error-400': node.role === NodeRole.ROUTER,
             }"
           />
         </div>
@@ -48,10 +46,9 @@
         <div
           class="w-6 h-6 rounded-full shadow-lg relative z-10 text-center text-black font-bold text-xs/6"
           :class="{
-            'bg-warning-400': node.role === MeshNodeRole.CLIENT,
-            'bg-secondary-400': node.role === MeshNodeRole.CLIENT_MUTE,
-            'bg-error-400': node.role === MeshNodeRole.ROUTER,
-            'outline outline-blue-400': node.isSelected,
+            'bg-warning-400': node.role === NodeRole.CLIENT,
+            'bg-secondary-400': node.role === NodeRole.CLIENT_MUTE,
+            'bg-error-400': node.role === NodeRole.ROUTER,
           }"
         >
           {{ node.id }}
@@ -63,9 +60,11 @@
 
 <script setup lang="ts">
 import type { LeafletMouseEvent } from "leaflet";
-import { MeshNodeRole, type MeshNode } from "~/simulator/mesh-node";
+import type { BaseNode } from "~/simulator/BaseNode";
+import { NodeRole } from "~/simulator/NodeRole";
+import { NodeState } from "~/simulator/NodeState";
 
-const props = defineProps<{ node: MeshNode }>();
+const props = defineProps<{ node: BaseNode }>();
 
 const emit = defineEmits<{
   (e: "moved", lat: number, lng: number): void;
@@ -79,12 +78,6 @@ function onDragEnd(event: LeafletMouseEvent) {
 
 function onClick(event: LeafletMouseEvent) {
   event.originalEvent.stopPropagation();
-
-  if (event.originalEvent.metaKey || event.originalEvent.ctrlKey) {
-    props.node.isSelected = !props.node.isSelected;
-    return;
-  }
-
   emit("click");
 }
 </script>
@@ -119,7 +112,7 @@ function onClick(event: LeafletMouseEvent) {
 }
 
 .wave-expand > div {
-  animation: expand-wave 1s ease-out infinite;
+  animation: expand-wave 0.6s ease-out infinite;
 }
 
 .receive-ring > div {
