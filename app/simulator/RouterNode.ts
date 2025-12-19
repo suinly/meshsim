@@ -8,7 +8,7 @@ export class RouterNode extends BaseNode {
   }
 
   shouldRebroadcast(packet: Packet): boolean {
-    return !this.heardReboardcast(packet);
+    return !this.hasTransmittedPacket(packet);
   }
 
   shouldDecrementHopLimit(packet: Packet): boolean {

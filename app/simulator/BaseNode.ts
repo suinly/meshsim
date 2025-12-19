@@ -75,6 +75,10 @@ export abstract class BaseNode {
     );
   }
 
+  hasTransmittedPacket(packet: Packet) {
+    return !!this.transmittedPackets.find((item) => item.id === packet.id);
+  }
+
   canTransmit(): boolean {
     return this.state === NodeState.LISTENING;
   }

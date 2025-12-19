@@ -99,7 +99,8 @@ export class Simulator {
       return;
     }
 
-    if (!node.shouldRebroadcast(packet)) return;
+    if (packet.hopLimit !== packet.hopStart && !node.shouldRebroadcast(packet))
+      return;
 
     // Канал свободен, передаем пакет
     this.logger.info(
