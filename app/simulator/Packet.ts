@@ -18,13 +18,17 @@ export class Packet {
   }
 
   clone() {
-    return new Packet(
+    const packet = new Packet(
       this.id,
       this.sourceId,
       this.destinationId,
       this.hopStart,
       this.relayId,
     );
+
+    packet.hopLimit = this.hopLimit;
+
+    return packet;
   }
 
   canBeRebroadcast() {
