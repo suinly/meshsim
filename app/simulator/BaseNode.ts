@@ -25,14 +25,6 @@ export abstract class BaseNode {
   abstract getRebroadcastDelay(snr: number): number;
 
   async transmit(packet: Packet) {
-    // Помечаем, что мы ретранслировали последними
-    packet.relayId = this.id;
-
-    // Уменьшаем hopLimit, если необходимо
-    if (this.shouldDecrementHopLimit(packet)) {
-      packet.hopLimit--;
-    }
-
     // Начинаем трансляцию
     this.state = NodeState.TRANSMITING;
     await this.sleep(600);
@@ -42,7 +34,19 @@ export abstract class BaseNode {
     this.logger.info(`Пакет #${packet.id} успешно передан`, this);
   }
 
-  async receive(packet: Packet) {
+  async retransmit(packet: Packet) {
+    // Помечаем, что мы ретранслировали последними
+    packet.relayId = this.id;
+
+    // Уменьшаем hopLimit, если необходимо
+    if (this.shouldDecrementHopLimit(packet)) {
+      packet.hopLimit--;
+    }
+
+    this.transmit(packet);
+  }
+
+  async receive(packet: Packet, snr: number) {
     if (this.state !== NodeState.LISTENING) return;
 
     this.state = NodeState.RECEIVING;
@@ -51,10 +55,18 @@ export abstract class BaseNode {
 
     this.markPacketReceived(packet);
     const alreadyHeard = this.heardReboardcast(packet);
-    this.logger.info(
-      `Пакет #${packet.id} получен ${alreadyHeard ? "повторно" : ""}`,
-      this,
-    );
+
+    if (packet.sourceId === this.id) {
+      this.logger.info(
+        `Получен свой пакет #${packet.id}, SNR: ${snr.toFixed(2)}dB, Hops: ${packet.hopStart - packet.hopLimit}`,
+        this,
+      );
+    } else {
+      this.logger.info(
+        `Пакет #${packet.id} получен${alreadyHeard ? " повторно" : ""}, SNR: ${snr.toFixed(2)}dB, Hops: ${packet.hopStart - packet.hopLimit}`,
+        this,
+      );
+    }
   }
 
   hasInFavorites(nodeId: number) {

@@ -109,7 +109,11 @@ export class Simulator {
     );
 
     try {
-      node.transmit(packet);
+      if (packet.relayId === node.id) {
+        node.transmit(packet);
+      } else {
+        node.retransmit(packet);
+      }
 
       // Рассчитываем, кто получит сообщение
       this.propagateMessage(node, packet);
@@ -141,7 +145,7 @@ export class Simulator {
       }
 
       // Нода все таки получает пакет
-      await targetNode.receive(packet);
+      await targetNode.receive(packet, snr);
 
       if (packet.sourceId === targetNode.id) return;
 
