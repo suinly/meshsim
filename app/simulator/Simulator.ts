@@ -190,19 +190,37 @@ export class Simulator {
   }
 
   private calculateSNR(distance: number, maxRange: number) {
-    // SNR уменьшается с расстоянием (упрощенная модель path loss)
+    // SNR уменьшается с расстоянием (логарифмическая модель path loss)
     // На близком расстоянии: высокий SNR (~15 dB)
-    // На максимальном расстоянии: низкий SNR (~-5 dB)
-    const normalizedDistance = distance / maxRange;
+    // На максимальном расстоянии: низкий SNR (~-15 dB)
     const maxSNR = 15; // dB
     const minSNR = -15; // dB
 
-    // Логарифмическое затухание + случайный фединг
-    const pathLoss =
-      maxSNR - (maxSNR - minSNR) * Math.pow(normalizedDistance, 2);
-    const fading = (Math.random() - 0.5) * 4; // ±2 dB случайного фединга
+    // Path loss exponent: 2 = free space, 2.5-3 = urban/obstacles
+    const pathLossExponent = 2.5;
 
-    return pathLoss + fading;
+    // Reference distance (1 метр)
+    const d0 = 1;
+
+    // Избегаем log10(0) для очень малых расстояний
+    const effectiveDistance = Math.max(distance, d0);
+
+    // Логарифмическая модель: PL(d) = 10 * n * log10(d/d0)
+    // SNR = maxSNR - PL(d)
+    const pathLoss = 10 * pathLossExponent * Math.log10(effectiveDistance / d0);
+
+    // Нормализуем pathLoss к диапазону [minSNR, maxSNR]
+    // При d=d0 (1м): pathLoss=0, SNR=maxSNR
+    // При d=maxRange: pathLoss рассчитывается, масштабируем к minSNR
+    const maxPathLoss = 10 * pathLossExponent * Math.log10(maxRange / d0);
+    const normalizedPathLoss = (pathLoss / maxPathLoss) * (maxSNR - minSNR);
+
+    const signalStrength = maxSNR - normalizedPathLoss;
+
+    // Случайный фединг (±2 dB log-normal shadowing)
+    const fading = (Math.random() - 0.5) * 4;
+
+    return signalStrength + fading;
   }
 
   private getReceptionProbability(snr: number) {
