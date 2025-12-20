@@ -140,7 +140,7 @@ export class Simulator {
 
       // Пакет потерян из-за плохого SNR
       if (Math.random() > receptionProbability) {
-        this.logger.info("Пакет потерян", targetNode);
+        this.logger.info("Пакет потерян, слишком низкий SNR", targetNode);
         return;
       }
 
@@ -192,9 +192,9 @@ export class Simulator {
   private calculateSNR(distance: number, maxRange: number) {
     // SNR уменьшается с расстоянием (логарифмическая модель path loss)
     // На близком расстоянии: высокий SNR (~15 dB)
-    // На максимальном расстоянии: низкий SNR (~-15 dB)
+    // На максимальном расстоянии: нестабильный прием (~-10 dB)
     const maxSNR = 15; // dB
-    const minSNR = -15; // dB
+    const minSNR = -10; // dB
 
     // Path loss exponent: 2 = free space, 2.5-3 = urban/obstacles
     const pathLossExponent = 2.5;
