@@ -74,7 +74,7 @@
     <!-- Модальное окно со справкой -->
     <UModal v-model:open="isHelpOpen" title="Справка по симулятору Mesh-сети">
       <template #content>
-        <div class="space-y-4 text-sm p-4">
+        <div class="space-y-4 text-sm p-4 overflow-y-auto max-h-[70vh]">
           <section>
             <h4 class="font-semibold mb-2">Что это за симулятор?</h4>
             <p class="text-gray-600 dark:text-gray-400">
@@ -201,6 +201,22 @@
                 - любая обратная связь приветствуется!
               </li>
             </ul>
+          </section>
+
+          <section>
+            <h4 class="font-semibold mb-2">Сообщество:</h4>
+            <p class="text-gray-600 dark:text-gray-400">
+              Присоединяйтесь к
+              <a
+                href="https://t.me/+FAV1ioJHq61lZTQ6"
+                target="_blank"
+                class="text-primary-600 dark:text-primary-400 hover:underline font-semibold"
+              >
+                Telegram-группе
+              </a>
+              для обсуждения симулятора, обмена опытом моделирования mesh-сетей,
+              вопросов по проекту, а также для участия в его развитии!
+            </p>
           </section>
         </div>
       </template>
