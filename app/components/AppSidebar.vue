@@ -7,6 +7,21 @@
         <AppLogo />
 
         <div class="flex">
+          <UButton
+            icon="i-lucide-panel-top-close"
+            v-if="!compact"
+            color="neutral"
+            variant="ghost"
+            @click="compact = true"
+          ></UButton>
+          <UButton
+            icon="i-lucide-panel-top-open"
+            v-else
+            color="neutral"
+            variant="ghost"
+            @click="compact = false"
+          ></UButton>
+
           <UColorModeButton />
 
           <UButton
@@ -19,8 +34,12 @@
           />
         </div>
       </div>
-      <AppControls />
-      <AppSettings />
+      <AppControls v-if="!compact" />
+      <AppSettings v-if="!compact" />
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+const compact = ref(false);
+</script>
