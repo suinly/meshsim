@@ -177,6 +177,31 @@
               </li>
             </ul>
           </section>
+
+          <section>
+            <h4 class="font-semibold mb-2">Важная информация:</h4>
+            <ul
+              class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400"
+            >
+              <li>
+                Алгоритм симуляции пока
+                <strong>не полностью соответствует</strong> протоколу
+                Meshtastic, но стремится к реалистичному моделированию основных
+                принципов mesh-networking
+              </li>
+              <li>
+                Нашли баг или несоответствие? Создайте issue на
+                <a
+                  href="https://github.com/suinly/meshsim/issues"
+                  target="_blank"
+                  class="text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  GitHub
+                </a>
+                - любая обратная связь приветствуется!
+              </li>
+            </ul>
+          </section>
         </div>
       </template>
     </UModal>
