@@ -18,7 +18,23 @@
     <AppSidebar
       class="fixed z-999 h-screen overflow-y-auto p-4 w-[320px] top-0 right-0"
     />
-    <AppFooter class="fixed z-999 h-[300px] p-4 w-full bottom-0" />
+    <UButton
+      class="fixed z-999 bottom-4 left-4"
+      color="neutral"
+      @click="show = true"
+      v-if="!show"
+      icon="i-lucide-panel-bottom-open"
+      >Показать панель логов</UButton
+    >
+    <UButton
+      v-else
+      @click="show = false"
+      class="fixed z-999 bottom-[300px] left-4"
+      icon="i-lucide-panel-bottom-close"
+      color="neutral"
+      >Скрыть панель логов</UButton
+    >
+    <AppFooter class="fixed z-999 h-[300px] p-4 w-full bottom-0" v-if="show" />
   </div>
 </template>
 
@@ -27,6 +43,8 @@ import { SimulatorMode } from "~/simulator/SimulatorMode";
 
 const { simulator, logger } = useSimulator();
 const { hopLimit, defaultRole } = useSimulatorSettings();
+
+const show = ref(false);
 
 onMounted(() => {
   logger.warning(
