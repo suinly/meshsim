@@ -16,7 +16,7 @@
       />
     </MeshMap>
     <AppSidebar
-      class="fixed z-999 h-screen overflow-y-auto p-4 w-[320px] top-0 right-0"
+      class="fixed z-999 overflow-y-auto p-4 w-[320px] top-0 right-0"
     />
     <UButton
       class="fixed z-999 bottom-4 left-4"
