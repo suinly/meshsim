@@ -52,6 +52,13 @@
         @click="changeDefaultRole(NodeRole.ROUTER)"
       />
     </div>
+
+    <div
+      v-if="simulator.mode == SimulatorMode.ADD"
+      class="mt-3 text-sm text-gray-600 dark:text-gray-400"
+    >
+      {{ roleDescription }}
+    </div>
   </div>
 </template>
 
@@ -61,6 +68,19 @@ import { SimulatorMode } from "~/simulator/SimulatorMode";
 
 const { simulator, logger } = useSimulator();
 const { defaultRole } = useSimulatorSettings();
+
+const roleDescriptions = {
+  [NodeRole.CLIENT]:
+    "Задержка ретрансляции зависит от SNR (0-2000 мс). Не ретранслирует повторно услышанные пакеты.",
+  [NodeRole.CLIENT_MUTE]:
+    "Только принимает пакеты, никогда не ретранслирует. Используется для конечных устройств.",
+  [NodeRole.ROUTER]:
+    "Мгновенная ретрансляция (0 мс). Не уменьшает hopLimit для пакетов от избранных узлов (в разработке).",
+};
+
+const roleDescription = computed(() => {
+  return roleDescriptions[defaultRole.value] || "";
+});
 
 const changeDefaultRole = (role: NodeRole) => {
   defaultRole.value = role;
