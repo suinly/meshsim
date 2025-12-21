@@ -43,16 +43,10 @@
 <script setup lang="ts">
 import { SimulatorMode } from "~/simulator/SimulatorMode";
 
-const { simulator, logger } = useSimulator();
+const { simulator } = useSimulator();
 const { hopLimit, defaultRole } = useSimulatorSettings();
 
 const show = ref(false);
-
-onMounted(() => {
-  logger.warning(
-    "ВНИМАНИЕ! На данный момент симулятор в стадии активной разработки и алгоритм его работы далек от Meshtastic или любого другого протокола. Все совпадения случайны!",
-  );
-});
 
 const handleMapClick = (lat: number, lng: number) => {
   if (simulator.mode == SimulatorMode.ADD) {
