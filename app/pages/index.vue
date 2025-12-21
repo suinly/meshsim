@@ -21,6 +21,7 @@
     <UButton
       class="fixed z-999 bottom-4 left-4"
       color="neutral"
+      variant="soft"
       @click="show = true"
       v-if="!show"
       icon="i-lucide-panel-bottom-open"
@@ -32,6 +33,7 @@
       class="fixed z-999 bottom-[300px] left-4"
       icon="i-lucide-panel-bottom-close"
       color="neutral"
+      variant="soft"
       >Скрыть панель логов</UButton
     >
     <AppFooter class="fixed z-999 h-[300px] p-4 w-full bottom-0" v-if="show" />
