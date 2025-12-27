@@ -36,6 +36,7 @@
       </div>
       <AppControls v-if="!compact" />
       <AppSettings v-if="!compact" />
+      <AppStatistic v-if="!compact" />
     </div>
   </div>
 </template>
