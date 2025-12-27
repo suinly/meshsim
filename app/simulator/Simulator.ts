@@ -6,12 +6,11 @@ import { ClientNode } from "./ClientNode";
 import { NodeRole } from "./NodeRole";
 import { RouterNode } from "./RouterNode";
 import { Packet } from "./Packet";
-import { NodeState } from "./NodeState";
 import { CadTransmitter, type NodeContext } from "./CADTransmitter";
-import { ta } from "zod/v4/locales";
 
 export class Simulator {
   nodes: BaseNode[] = [];
+  selectedNodes: Set<number> = new Set();
   mode: SimulatorMode = SimulatorMode.ADD;
   packetCount: number = 0;
   private cadTransmitter: CadTransmitter;

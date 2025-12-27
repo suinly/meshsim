@@ -8,6 +8,16 @@
   >
     <LIcon :icon-size="[30, 30]" :icon-anchor="[15, 15]">
       <div class="relative w-[30px] h-[30px] flex items-center justify-center">
+        <!-- Индикатор выбора -->
+        <div
+          v-if="isSelected"
+          class="absolute inset-0 flex items-center justify-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full border-2 border-primary-500 bg-primary-500/20"
+          />
+        </div>
+
         <!-- Волна передачи - расходится от ноды -->
         <div
           v-if="node.state === NodeState.TRANSMITING"
@@ -64,11 +74,14 @@ import type { BaseNode } from "~/simulator/BaseNode";
 import { NodeRole } from "~/simulator/NodeRole";
 import { NodeState } from "~/simulator/NodeState";
 
-const props = defineProps<{ node: BaseNode }>();
+const props = defineProps<{
+  node: BaseNode;
+  isSelected?: boolean;
+}>();
 
 const emit = defineEmits<{
   (e: "moved", lat: number, lng: number): void;
-  (e: "click"): void;
+  (e: "click", event: MouseEvent): void;
 }>();
 
 function onDragEnd(event: LeafletMouseEvent) {
@@ -78,7 +91,7 @@ function onDragEnd(event: LeafletMouseEvent) {
 
 function onClick(event: LeafletMouseEvent) {
   event.originalEvent.stopPropagation();
-  emit("click");
+  emit("click", event.originalEvent);
 }
 </script>
 

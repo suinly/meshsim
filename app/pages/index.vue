@@ -3,16 +3,15 @@
     <MeshMap
       style="height: 100vh"
       :is-adding-mode="simulator.mode == SimulatorMode.ADD"
-      @click="handleMapClick"
+      @click="onMapClick"
     >
       <MeshNodeMarker
         v-for="node in simulator.nodes"
         :key="node.id"
         :node="node"
-        @moved="
-          (lat: number, lng: number) => simulator.moveNode(node, lat, lng)
-        "
-        @click="simulator.transmitFromNode(node)"
+        :is-selected="simulator.selectedNodes.has(node.id)"
+        @moved="(lat: number, lng: number) => onNodeMoved(node, lat, lng)"
+        @click="(event: MouseEvent) => onNodeClick(node, event)"
       />
     </MeshMap>
     <AppSidebar
@@ -41,6 +40,7 @@
 </template>
 
 <script setup lang="ts">
+import type { BaseNode } from "~/simulator/BaseNode";
 import { SimulatorMode } from "~/simulator/SimulatorMode";
 
 const { simulator } = useSimulator();
@@ -48,9 +48,31 @@ const { hopLimit, defaultRole } = useSimulatorSettings();
 
 const show = ref(false);
 
-const handleMapClick = (lat: number, lng: number) => {
+const onMapClick = (lat: number, lng: number) => {
   if (simulator.mode == SimulatorMode.ADD) {
     simulator.addNode(lat, lng, hopLimit.value, 20, defaultRole.value);
+  } else {
+    // Клик по карте (не по ноде) сбрасывает выделение
+    simulator.selectedNodes.clear();
   }
+};
+
+const onNodeClick = (node: BaseNode, event?: MouseEvent) => {
+  // Проверяем, зажата ли клавиша Ctrl (Windows/Linux) или Cmd (macOS)
+  if (event && (event.ctrlKey || event.metaKey)) {
+    // Множественный выбор
+    if (simulator.selectedNodes.has(node.id)) {
+      simulator.selectedNodes.delete(node.id);
+    } else {
+      simulator.selectedNodes.add(node.id);
+    }
+  } else {
+    // Обычный клик - передача пакета
+    simulator.transmitFromNode(node);
+  }
+};
+
+const onNodeMoved = (node: BaseNode, lat: number, lng: number) => {
+  simulator.moveNode(node, lat, lng);
 };
 </script>
