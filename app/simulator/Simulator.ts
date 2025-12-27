@@ -59,6 +59,10 @@ export class Simulator {
     node.lng = lng;
   }
 
+  nodeById(id: number) {
+    return this.nodes.find((item) => item.id === id);
+  }
+
   async transmitFromNode(node: BaseNode, packet?: Packet) {
     if (!packet) {
       packet = new Packet(
