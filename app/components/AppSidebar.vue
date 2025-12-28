@@ -25,9 +25,19 @@
           <UColorModeButton />
 
           <UButton
+            to="https://t.me/+FAV1ioJHq61lZTQ6"
+            target="_blank"
+            icon="i-simple-icons-telegram"
+            title="Группа в Telegram"
+            aria-label="Telegram"
+            color="neutral"
+            variant="ghost"
+          />
+          <UButton
             to="https://github.com/suinly/meshsim"
             target="_blank"
             icon="i-simple-icons-github"
+            title="Репозиторий в GitHub"
             aria-label="GitHub"
             color="neutral"
             variant="ghost"
