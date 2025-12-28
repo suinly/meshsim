@@ -8,7 +8,12 @@
     @contextmenu="onContextMenu"
   >
     <LIcon :icon-size="[30, 30]" :icon-anchor="[15, 15]">
-      <div class="relative w-[30px] h-[30px] flex items-center justify-center">
+      <div
+        class="relative w-[30px] h-[30px] flex items-center justify-center"
+        @touchstart.stop="onTouchStart"
+        @touchend.stop="onTouchEnd"
+        @touchmove.stop="onTouchMove"
+      >
         <!-- Индикатор выбора -->
         <div
           v-if="isSelected"
@@ -16,6 +21,16 @@
         >
           <div
             class="w-8 h-8 rounded-full border-2 border-primary-500 bg-primary-500/20"
+          />
+        </div>
+
+        <!-- Индикатор долгого нажатия -->
+        <div
+          v-if="isLongPressing"
+          class="absolute inset-0 flex items-center justify-center pointer-events-none"
+        >
+          <div
+            class="w-10 h-10 rounded-full border-3 border-primary-500 bg-primary-500/40 long-press-ring"
           />
         </div>
 
@@ -60,6 +75,7 @@
             'bg-warning-400': node.role === NodeRole.CLIENT,
             'bg-secondary-400': node.role === NodeRole.CLIENT_MUTE,
             'bg-error-400': node.role === NodeRole.ROUTER,
+            'ring-4 ring-red-500': isLongPressing,
           }"
         >
           {{ node.id }}
@@ -69,50 +85,14 @@
   </LMarker>
 
   <!-- Контекстное меню -->
-  <UContextMenu v-model:open="isContextMenuOpen" :virtual-element="virtualElement">
-    <div class="p-3 space-y-2 min-w-[250px]">
-      <div class="font-semibold text-sm border-b pb-2">Узел #{{ node.id }}</div>
-
-      <div class="space-y-1 text-xs">
-        <div class="flex justify-between">
-          <span class="text-neutral-500">Роль:</span>
-          <span class="font-medium">{{ getRoleLabel(node.role) }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-neutral-500">Состояние:</span>
-          <span class="font-medium">{{ getStateLabel(node.state) }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-neutral-500">Лимит прыжков:</span>
-          <span class="font-medium">{{ node.hopLimit }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-neutral-500">Мощность:</span>
-          <span class="font-medium">{{ node.power }} дБм</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-neutral-500">Передано пакетов:</span>
-          <span class="font-medium">{{ node.transmittedPackets.length }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-neutral-500">Принято пакетов:</span>
-          <span class="font-medium">{{ node.receivedPackets.length }}</span>
-        </div>
-      </div>
-
-      <div class="pt-2 border-t">
-        <UButton
-          block
-          color="primary"
-          variant="soft"
-          icon="i-lucide-settings"
-          @click="openSettings"
-        >
-          Настройки
-        </UButton>
-      </div>
-    </div>
-  </UContextMenu>
+  <NodeContextMenu
+    :node="node"
+    :is-open="isContextMenuOpen"
+    :initial-position="menuPosition"
+    :highlight-trigger="highlightTrigger"
+    @close="closeMenu"
+    @update:position="menuPosition = $event"
+  />
 </template>
 
 <script setup lang="ts">
@@ -129,14 +109,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "moved", lat: number, lng: number): void;
   (e: "click", event: MouseEvent): void;
-  (e: "openSettings"): void;
 }>();
-
-const { simulator } = useSimulator();
 
 // Состояние контекстного меню
 const isContextMenuOpen = ref(false);
-const virtualElement = ref({ getBoundingClientRect: () => ({}) });
+const menuPosition = ref({ x: 0, y: 0 });
+const isLongPressing = ref(false);
+const highlightTrigger = ref(0);
 
 function onDragEnd(event: LeafletMouseEvent) {
   const { lat, lng } = event.target.getLatLng();
@@ -152,55 +131,103 @@ function onContextMenu(event: LeafletMouseEvent) {
   event.originalEvent.preventDefault();
   event.originalEvent.stopPropagation();
 
+  // Если меню уже открыто, просто подсвечиваем его
+  if (isContextMenuOpen.value) {
+    highlightTrigger.value++;
+    return;
+  }
+
   const mouseEvent = event.originalEvent;
+  const menuWidth = 220;
+  const menuHeight = 220;
 
-  // Создаем виртуальный элемент для позиционирования меню
-  virtualElement.value = {
-    getBoundingClientRect: () => ({
-      width: 0,
-      height: 0,
-      x: mouseEvent.clientX,
-      y: mouseEvent.clientY,
-      top: mouseEvent.clientY,
-      left: mouseEvent.clientX,
-      right: mouseEvent.clientX,
-      bottom: mouseEvent.clientY,
-    }),
-  };
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
 
+  let x = mouseEvent.clientX;
+  let y = mouseEvent.clientY;
+
+  if (x + menuWidth > windowWidth) {
+    x = windowWidth - menuWidth - 10;
+  }
+
+  if (y + menuHeight > windowHeight) {
+    y = windowHeight - menuHeight - 10;
+  }
+
+  x = Math.max(10, x);
+  y = Math.max(10, y);
+
+  menuPosition.value = { x, y };
   isContextMenuOpen.value = true;
 }
 
-function getRoleLabel(role: NodeRole): string {
-  switch (role) {
-    case NodeRole.CLIENT:
-      return "Клиент";
-    case NodeRole.CLIENT_MUTE:
-      return "Клиент (без ретрансляции)";
-    case NodeRole.ROUTER:
-      return "Роутер";
-    default:
-      return "Неизвестно";
-  }
-}
-
-function getStateLabel(state: NodeState): string {
-  switch (state) {
-    case NodeState.LISTENING:
-      return "Слушает";
-    case NodeState.TRANSMITING:
-      return "Передает";
-    case NodeState.RECEIVING:
-      return "Принимает";
-    default:
-      return "Неизвестно";
-  }
-}
-
-function openSettings() {
+function closeMenu() {
   isContextMenuOpen.value = false;
-  simulator.selectedNodes.clear();
-  simulator.selectedNodes.add(props.node.id);
+}
+
+// Поддержка долгого нажатия для мобильных устройств
+let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+const longPressDuration = 500;
+
+function onTouchStart(event: TouchEvent) {
+  event.preventDefault();
+  isLongPressing.value = true;
+
+  longPressTimer = setTimeout(() => {
+    // Если меню уже открыто, просто подсвечиваем его
+    if (isContextMenuOpen.value) {
+      highlightTrigger.value++;
+      isLongPressing.value = false;
+      return;
+    }
+
+    if (event.touches && event.touches.length === 1) {
+      const touch = event.touches[0];
+      const menuWidth = 220;
+      const menuHeight = 350;
+
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      let x = touch.clientX;
+      let y = touch.clientY;
+
+      if (x + menuWidth > windowWidth) {
+        x = windowWidth - menuWidth - 10;
+      }
+
+      if (y + menuHeight > windowHeight) {
+        y = windowHeight - menuHeight - 10;
+      }
+
+      x = Math.max(10, x);
+      y = Math.max(10, y);
+
+      menuPosition.value = { x, y };
+      isContextMenuOpen.value = true;
+    }
+    isLongPressing.value = false;
+  }, longPressDuration);
+}
+
+function onTouchEnd(event: TouchEvent) {
+  event.preventDefault();
+  isLongPressing.value = false;
+
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+}
+
+function onTouchMove() {
+  isLongPressing.value = false;
+
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
 }
 </script>
 
@@ -233,6 +260,22 @@ function openSettings() {
   }
 }
 
+/* Анимация долгого нажатия */
+@keyframes long-press {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+}
+
 .wave-expand > div {
   animation: expand-wave 0.6s ease-out infinite;
 }
@@ -240,5 +283,9 @@ function openSettings() {
 .receive-ring > div {
   animation: pulse-ring 0.6s ease-in-out;
   opacity: 0.8;
+}
+
+.long-press-ring {
+  animation: long-press 0.5s ease-in-out infinite;
 }
 </style>
