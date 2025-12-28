@@ -184,6 +184,9 @@ function onTouchStart(event: TouchEvent) {
 
     if (event.touches && event.touches.length === 1) {
       const touch = event.touches[0];
+
+      if (!touch) return;
+
       const menuWidth = 220;
       const menuHeight = 350;
 

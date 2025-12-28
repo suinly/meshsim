@@ -35,6 +35,23 @@
         </div>
       </div>
       <template v-if="!compact">
+        <!-- Подсказка по взаимодействию с узлами -->
+        <UAlert
+          v-if="isHintOpen"
+          color="primary"
+          variant="soft"
+          title="Взаимодействие с узлами:"
+          :close="true"
+          @update:open="handleAlertClose"
+        >
+          <template #description>
+            <div class="text-xs space-y-1 mt-1">
+              <div>• Клик / Тап — передать пакет</div>
+              <div>• ПКМ / Долгое нажатие — меню узла</div>
+            </div>
+          </template>
+        </UAlert>
+
         <AppControls />
         <p>Глобальные настройки</p>
         <AppSettings />
@@ -46,4 +63,21 @@
 
 <script setup lang="ts">
 const compact = ref(false);
+
+// Управление подсказкой
+const isHintOpen = ref(true);
+
+onMounted(() => {
+  // Проверяем, была ли подсказка закрыта ранее
+  if (typeof localStorage !== "undefined") {
+    isHintOpen.value = localStorage.getItem("nodeHintClosed") !== "true";
+  }
+});
+
+function handleAlertClose(value: boolean) {
+  isHintOpen.value = value;
+  if (!value && typeof localStorage !== "undefined") {
+    localStorage.setItem("nodeHintClosed", "true");
+  }
+}
 </script>
