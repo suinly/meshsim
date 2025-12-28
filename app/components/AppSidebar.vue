@@ -41,19 +41,9 @@
         <AppStatistic v-if="!compact" />
       </template>
     </div>
-
-    <div
-      v-if="simulator.selectedNodes.size > 0"
-      class="flex flex-col gap-4 rounded-lg overflow-hidden bg-elevated/50 w-full p-4 mt-4"
-    >
-      <template v-for="nodeId in simulator.selectedNodes.values()">
-        <NodeSettings :nodeId="nodeId" />
-      </template>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 const compact = ref(false);
-const { simulator } = useSimulator();
 </script>

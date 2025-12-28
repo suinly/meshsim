@@ -46,123 +46,22 @@
             />
           </div>
 
-          <div class="p-3 space-y-3">
+          <div class="p-3">
             <!-- Режим просмотра -->
-            <template v-if="!isEditMode">
-              <div class="space-y-1 text-xs">
-                <div class="flex justify-between">
-                  <span class="text-neutral-500">Роль:</span>
-                  <span class="font-medium">{{ getRoleLabel(node.role) }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-neutral-500">Состояние:</span>
-                  <span class="font-medium">{{
-                    getStateLabel(node.state)
-                  }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-neutral-500">Лимит прыжков:</span>
-                  <span class="font-medium">{{ node.hopLimit }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-neutral-500">Мощность:</span>
-                  <span class="font-medium">{{ node.power }} дБм</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-neutral-500">Передано пакетов:</span>
-                  <span class="font-medium">{{
-                    node.transmittedPackets.length
-                  }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-neutral-500">Принято пакетов:</span>
-                  <span class="font-medium">{{
-                    node.receivedPackets.length
-                  }}</span>
-                </div>
-              </div>
-
-              <div
-                class="pt-2 border-t border-neutral-200 dark:border-neutral-800 space-y-2"
-              >
-                <UButton
-                  block
-                  color="primary"
-                  variant="solid"
-                  icon="i-lucide-send"
-                  size="sm"
-                  @click="transmitPacket"
-                >
-                  Передать пакет
-                </UButton>
-                <UButton
-                  block
-                  color="neutral"
-                  variant="soft"
-                  icon="i-lucide-settings"
-                  size="sm"
-                  @click="isEditMode = true"
-                >
-                  Настройки
-                </UButton>
-              </div>
-            </template>
+            <NodeInfo
+              v-if="!isEditMode"
+              :node="node"
+              @transmit="transmitPacket"
+              @edit="isEditMode = true"
+            />
 
             <!-- Режим редактирования -->
-            <template v-else>
-              <div class="space-y-3">
-                <div>
-                  <label class="text-xs text-neutral-500 block mb-1"
-                    >Лимит прыжков</label
-                  >
-                  <UInput
-                    v-model.number="editForm.hopLimit"
-                    type="number"
-                    min="1"
-                    max="7"
-                    size="sm"
-                  />
-                  <p class="text-xs text-neutral-500 mt-1">От 1 до 7 прыжков</p>
-                </div>
-
-                <div>
-                  <label class="text-xs text-neutral-500 block mb-1"
-                    >Мощность (дБм)</label
-                  >
-                  <UInput
-                    v-model.number="editForm.power"
-                    type="number"
-                    min="1"
-                    max="20"
-                    size="sm"
-                  />
-                  <p class="text-xs text-neutral-500 mt-1">От 1 до 20 дБм</p>
-                </div>
-              </div>
-
-              <div
-                class="pt-2 border-t border-neutral-200 dark:border-neutral-800 flex gap-2"
-              >
-                <UButton
-                  block
-                  color="primary"
-                  variant="solid"
-                  icon="i-lucide-check"
-                  @click="applySettings"
-                >
-                  Применить
-                </UButton>
-                <UButton
-                  block
-                  color="neutral"
-                  variant="ghost"
-                  icon="i-lucide-x"
-                  @click="cancelEdit"
-                >
-                  Отмена
-                </UButton>
-              </div>
-            </template>
+            <NodeSettingsForm
+              v-else
+              :node="node"
+              @apply="applySettings"
+              @cancel="cancelEdit"
+            />
           </div>
         </div>
       </div>
@@ -172,8 +71,6 @@
 
 <script setup lang="ts">
 import type { BaseNode } from "~/simulator/BaseNode";
-import { NodeRole } from "~/simulator/NodeRole";
-import { NodeState } from "~/simulator/NodeState";
 
 const props = defineProps<{
   node: BaseNode;
@@ -200,20 +97,12 @@ const isDragging = ref(false);
 const dragStart = ref({ x: 0, y: 0 });
 const position = ref({ x: 0, y: 0 });
 
-// Форма редактирования
-const editForm = reactive({
-  hopLimit: 3,
-  power: 20,
-});
-
 // Инициализируем позицию при открытии
 watch(
   () => props.isOpen,
   (isOpen) => {
     if (isOpen) {
       position.value = { ...props.initialPosition };
-      editForm.hopLimit = props.node.hopLimit;
-      editForm.power = props.node.power;
       isEditMode.value = false;
       bringToFront();
       activateWindow();
@@ -249,46 +138,17 @@ function handleTouchStart() {
   bringToFront();
 }
 
-function getRoleLabel(role: NodeRole): string {
-  switch (role) {
-    case NodeRole.CLIENT:
-      return "Клиент";
-    case NodeRole.CLIENT_MUTE:
-      return "Клиент (без ретрансляции)";
-    case NodeRole.ROUTER:
-      return "Роутер";
-    default:
-      return "Неизвестно";
-  }
-}
-
-function getStateLabel(state: NodeState): string {
-  switch (state) {
-    case NodeState.LISTENING:
-      return "Слушает";
-    case NodeState.TRANSMITING:
-      return "Передает";
-    case NodeState.RECEIVING:
-      return "Принимает";
-    default:
-      return "Неизвестно";
-  }
-}
-
 function transmitPacket() {
   simulator.transmitFromNode(props.node);
 }
 
-function applySettings() {
-  props.node.hopLimit = editForm.hopLimit;
-  props.node.power = editForm.power;
+function applySettings(settings: { hopLimit: number; power: number }) {
+  props.node.hopLimit = settings.hopLimit;
+  props.node.power = settings.power;
   isEditMode.value = false;
-  emit("close");
 }
 
 function cancelEdit() {
-  editForm.hopLimit = props.node.hopLimit;
-  editForm.power = props.node.power;
   isEditMode.value = false;
 }
 
@@ -332,6 +192,9 @@ function startDragTouch(event: TouchEvent) {
   bringToFront();
 
   const touch = event.touches[0];
+
+  if (!touch) return;
+
   isDragging.value = true;
   dragStart.value = {
     x: touch.clientX - position.value.x,
@@ -342,6 +205,9 @@ function startDragTouch(event: TouchEvent) {
     if (isDragging.value && e.touches.length === 1) {
       e.preventDefault();
       const t = e.touches[0];
+
+      if (!t) return;
+
       position.value = {
         x: t.clientX - dragStart.value.x,
         y: t.clientY - dragStart.value.y,
