@@ -24,7 +24,7 @@
         @mousedown.stop="handleMouseDown"
         @touchstart.stop="handleTouchStart"
       >
-        <div class="min-w-[220px]">
+        <div class="w-[230px]">
           <!-- Заголовок с кнопкой закрытия (перетаскиваемая область) -->
           <div
             class="flex items-center justify-between p-3 border-b border-neutral-200 dark:border-neutral-800 cursor-move select-none active:cursor-grabbing"
@@ -55,7 +55,9 @@
                 </div>
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Состояние:</span>
-                  <span class="font-medium">{{ getStateLabel(node.state) }}</span>
+                  <span class="font-medium">{{
+                    getStateLabel(node.state)
+                  }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Лимит прыжков:</span>
@@ -79,12 +81,25 @@
                 </div>
               </div>
 
-              <div class="pt-2 border-t border-neutral-200 dark:border-neutral-800">
+              <div
+                class="pt-2 border-t border-neutral-200 dark:border-neutral-800 space-y-2"
+              >
                 <UButton
                   block
                   color="primary"
+                  variant="solid"
+                  icon="i-lucide-send"
+                  size="sm"
+                  @click="transmitPacket"
+                >
+                  Передать пакет
+                </UButton>
+                <UButton
+                  block
+                  color="neutral"
                   variant="soft"
                   icon="i-lucide-settings"
+                  size="sm"
                   @click="isEditMode = true"
                 >
                   Настройки
@@ -171,6 +186,9 @@ const emit = defineEmits<{
   (e: "update:position", position: { x: number; y: number }): void;
 }>();
 
+// Симулятор для передачи пакетов
+const { simulator } = useSimulator();
+
 // Управление слоями окон
 const { zIndex, bringToFront } = useWindowStack();
 const isActive = ref(false);
@@ -200,7 +218,7 @@ watch(
       activateWindow();
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Подсветка окна при повторном клике на узел
@@ -211,7 +229,7 @@ watch(
       bringToFront();
       activateWindow();
     }
-  }
+  },
 );
 
 // Обработка активации окна
@@ -254,6 +272,10 @@ function getStateLabel(state: NodeState): string {
     default:
       return "Неизвестно";
   }
+}
+
+function transmitPacket() {
+  simulator.transmitFromNode(props.node);
 }
 
 function applySettings() {
@@ -333,7 +355,9 @@ function startDragTouch(event: TouchEvent) {
     document.removeEventListener("touchend", onTouchEndHandler);
   };
 
-  document.addEventListener("touchmove", onTouchMoveHandler, { passive: false });
+  document.addEventListener("touchmove", onTouchMoveHandler, {
+    passive: false,
+  });
   document.addEventListener("touchend", onTouchEndHandler);
 }
 </script>
