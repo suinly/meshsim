@@ -39,36 +39,39 @@
         </UTooltip>
       </div>
 
-      <div v-if="simulator.mode == SimulatorMode.ADD" class="flex gap-2 mt-4">
-        <AppCheckableButton
-          icon="i-lucide-circle-dot"
-          tooltip="CLIENT"
-          color="warning"
-          :checked="defaultRole == NodeRole.CLIENT"
-          @click="changeDefaultRole(NodeRole.CLIENT)"
-        />
-        <AppCheckableButton
-          icon="i-lucide-circle-x"
-          tooltip="CLIENT_MUTE"
-          color="secondary"
-          :checked="defaultRole == NodeRole.CLIENT_MUTE"
-          @click="changeDefaultRole(NodeRole.CLIENT_MUTE)"
-        />
-        <AppCheckableButton
-          icon="i-lucide-circle-alert"
-          tooltip="ROUTER"
-          color="error"
-          :checked="defaultRole == NodeRole.ROUTER"
-          @click="changeDefaultRole(NodeRole.ROUTER)"
-        />
-      </div>
+      <template v-if="simulator.mode == SimulatorMode.ADD">
+        <p class="mt-4 mb-2 text-sm">Тип узла</p>
+        <div class="flex gap-2">
+          <AppCheckableButton
+            icon="i-lucide-circle-dot"
+            tooltip="CLIENT"
+            color="warning"
+            :checked="defaultRole == NodeRole.CLIENT"
+            @click="changeDefaultRole(NodeRole.CLIENT)"
+          />
+          <AppCheckableButton
+            icon="i-lucide-circle-x"
+            tooltip="CLIENT_MUTE"
+            color="secondary"
+            :checked="defaultRole == NodeRole.CLIENT_MUTE"
+            @click="changeDefaultRole(NodeRole.CLIENT_MUTE)"
+          />
+          <AppCheckableButton
+            icon="i-lucide-circle-alert"
+            tooltip="ROUTER"
+            color="error"
+            :checked="defaultRole == NodeRole.ROUTER"
+            @click="changeDefaultRole(NodeRole.ROUTER)"
+          />
+        </div>
 
-      <div
-        v-if="simulator.mode == SimulatorMode.ADD"
-        class="mt-3 text-sm text-gray-600 dark:text-gray-400"
-      >
-        {{ roleDescription }}
-      </div>
+        <div
+          v-if="simulator.mode == SimulatorMode.ADD"
+          class="mt-3 text-sm text-gray-600 dark:text-gray-400"
+        >
+          {{ roleDescription }}
+        </div>
+      </template>
     </div>
 
     <!-- Модальное окно со справкой -->

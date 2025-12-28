@@ -6,12 +6,11 @@ import { ClientNode } from "./ClientNode";
 import { NodeRole } from "./NodeRole";
 import { RouterNode } from "./RouterNode";
 import { Packet } from "./Packet";
-import { NodeState } from "./NodeState";
 import { CadTransmitter, type NodeContext } from "./CADTransmitter";
-import { ta } from "zod/v4/locales";
 
 export class Simulator {
   nodes: BaseNode[] = [];
+  selectedNodes: Set<number> = new Set();
   mode: SimulatorMode = SimulatorMode.ADD;
   packetCount: number = 0;
   private cadTransmitter: CadTransmitter;
@@ -58,6 +57,10 @@ export class Simulator {
   moveNode(node: BaseNode, lat: number, lng: number) {
     node.lat = lat;
     node.lng = lng;
+  }
+
+  nodeById(id: number) {
+    return this.nodes.find((item) => item.id === id);
   }
 
   async transmitFromNode(node: BaseNode, packet?: Packet) {
@@ -123,19 +126,21 @@ export class Simulator {
   }
 
   private propagateMessage(node: BaseNode, packet: Packet) {
-    const maxRange = 5000;
     const newPacket = packet.clone();
 
     this.nodes.forEach(async (targetNode) => {
       // Если нода слышит свой пакет, то ничего не делаем
       if (packet.relayId === targetNode.id) return;
 
+      // Вычисляем максимальную дальность с учетом мощности передатчика
+      const maxRange = this.calculateMaxRange(node.power);
+
       // Если нода слишком далеко, то она не слышит
       const distance = this.calculateDistanceBetweenNodes(node, targetNode);
       if (distance > maxRange) return;
 
       // Вероятность успешного приема также зависит и от SNR
-      const snr = this.calculateSNR(distance, maxRange);
+      const snr = this.calculateSNR(distance, maxRange, node.power);
       const receptionProbability = this.getReceptionProbability(snr);
 
       // Пакет потерян из-за плохого SNR
@@ -189,12 +194,30 @@ export class Simulator {
     return earthRadiusMeters * centralAngle;
   }
 
-  private calculateSNR(distance: number, maxRange: number) {
+  private calculateMaxRange(power: number): number {
+    // Базовые параметры: 20 дБм = 5000м
+    const basePower = 20; // дБм
+    const baseRange = 5000; // метров
+
+    // Формула Friis: каждые 6 дБ удваивают/уменьшают дальность вдвое
+    // Range = BaseRange * 10^((Power - BasePower) / 20)
+    const powerDifference = power - basePower;
+    const rangeFactor = Math.pow(10, powerDifference / 20);
+
+    return baseRange * rangeFactor;
+  }
+
+  private calculateSNR(distance: number, maxRange: number, power: number) {
     // SNR уменьшается с расстоянием (логарифмическая модель path loss)
-    // На близком расстоянии: высокий SNR (~15 dB)
-    // На максимальном расстоянии: нестабильный прием (~-10 dB)
-    const maxSNR = 15; // dB
+    // Базовые параметры для мощности 20 дБм
+    const basePower = 20; // дБм
+    const baseMaxSNR = 15; // dB при базовой мощности
     const minSNR = -10; // dB
+
+    // Корректируем максимальный SNR с учетом мощности
+    // Каждый дБм мощности добавляет 1 дБ к SNR
+    const powerBonus = power - basePower;
+    const maxSNR = baseMaxSNR + powerBonus;
 
     // Path loss exponent: 2 = free space, 2.5-3 = urban/obstacles
     const pathLossExponent = 2.5;
