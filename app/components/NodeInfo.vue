@@ -18,6 +18,10 @@
         <span class="font-medium">{{ node.power }} дБм</span>
       </div>
       <div class="flex justify-between">
+        <span class="text-neutral-500">Дальность:</span>
+        <span class="font-medium">{{ calculateRange(node.power) }}</span>
+      </div>
+      <div class="flex justify-between">
         <span class="text-neutral-500">Передано пакетов:</span>
         <span class="font-medium">{{ node.transmittedPackets.length }}</span>
       </div>
@@ -92,5 +96,21 @@ function getStateLabel(state: NodeState): string {
     default:
       return "Неизвестно";
   }
+}
+
+function calculateRange(power: number): string {
+  // Используем ту же формулу, что и в симуляторе
+  const basePower = 20; // дБм
+  const baseRange = 5000; // метров
+
+  const powerDifference = power - basePower;
+  const rangeFactor = Math.pow(10, powerDifference / 20);
+  const range = baseRange * rangeFactor;
+
+  // Форматируем для отображения
+  if (range >= 1000) {
+    return `${(range / 1000).toFixed(1)} км`;
+  }
+  return `${Math.round(range)} м`;
 }
 </script>

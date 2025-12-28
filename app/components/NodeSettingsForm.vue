@@ -24,7 +24,9 @@
           max="20"
           size="sm"
         />
-        <p class="text-xs text-neutral-500 mt-1">От 1 до 20 дБм</p>
+        <p class="text-xs text-neutral-500 mt-1">
+          От 1 до 20 дБм • Дальность: {{ calculateRange(localForm.power) }}
+        </p>
       </div>
     </div>
 
@@ -87,4 +89,20 @@ watch(
     localForm.power = node.power;
   },
 );
+
+function calculateRange(power: number): string {
+  // Используем ту же формулу, что и в симуляторе
+  const basePower = 20; // дБм
+  const baseRange = 5000; // метров
+
+  const powerDifference = power - basePower;
+  const rangeFactor = Math.pow(10, powerDifference / 20);
+  const range = baseRange * rangeFactor;
+
+  // Форматируем для отображения
+  if (range >= 1000) {
+    return `${(range / 1000).toFixed(1)} км`;
+  }
+  return `${Math.round(range)} м`;
+}
 </script>
