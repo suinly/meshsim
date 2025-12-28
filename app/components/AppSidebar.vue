@@ -53,7 +53,6 @@
         </UAlert>
 
         <AppControls />
-        <p>Глобальные настройки</p>
         <AppSettings />
         <AppStatistic v-if="!compact" />
       </template>
