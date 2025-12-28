@@ -42,6 +42,7 @@
               variant="ghost"
               icon="i-lucide-x"
               @click.stop="emit('close')"
+              @touchstart.stop.prevent="emit('close')"
             />
           </div>
 
