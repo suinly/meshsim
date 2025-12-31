@@ -98,6 +98,20 @@ The simulator supports three types of nodes with different rebroadcast behaviors
   - Preserves hop limit when receiving from "favorite" nodes (RouterNode.ts:19-21)
   - Zero rebroadcast delay for faster routing
 
+**BaseNode Constructor:**
+All node types inherit from BaseNode with the following constructor parameters:
+```typescript
+constructor(
+  id: number,           // Unique node identifier
+  lat: number,          // Latitude coordinate
+  lng: number,          // Longitude coordinate
+  hopLimit: number,     // Hop limit (1-7, default 3)
+  power: number,        // Transmit power in dBm (1-30, default 20)
+  height: number,       // Node height in meters (0-200, default 0)
+  logger: Logger        // Logger instance
+)
+```
+
 #### 3. **Mesh Network Simulation Logic**
 
 The simulator implements realistic mesh networking behavior:
@@ -108,18 +122,31 @@ The simulator implements realistic mesh networking behavior:
   - Maximum 5 retry attempts before giving up
   - Each CAD operation takes 5ms + random backoff
 
-- **Power-based Transmission Range**: Transmission range calculated using Friis formula: `Range = 5000м × 10^((Power - 20дБм) / 20)`
-  - Power 20 dBm (default) = 5.0 km
-  - Power 10 dBm = ~1.6 km
-  - Power 1 dBm = ~396 m
+- **Power and Height-based Transmission Range**: Transmission range calculated using combined power and height model
+  - **Base range** (at height 0m, power 20 dBm): 600 meters
+  - **Power influence**: Friis formula `PowerAdjustedRange = 600м × 10^((Power - 20дБм) / 20)`
+    - Power 20 dBm: 600m base range
+    - Power 10 dBm: ~190m
+    - Power 30 dBm: ~1.9km
+  - **Height influence**: Linear model from 600m to 50km
+    - 0m height: 600m range
+    - 20m height (7-floor building): ~5.5km
+    - 50m height (high-rise): ~13km
+    - 100m height (tower): ~25km
+    - 200m height (maximum): 50km
+    - Each meter of height adds ~247m of range
+  - **Combined formula**: `Range = PowerAdjustedRange + (height / 200m) × 49400m`
   - Each dBm of transmit power adds 1 dB to max SNR
 
 - **SNR-based Reception**: Packet reception probability depends on Signal-to-Noise Ratio (Simulator.ts:226-236)
   - Uses sigmoid function: `1 / (1 + exp(-k * (snr - threshold)))`
   - SNR > -7 dB: ~98%+ success, SNR ~ -11 dB: 50%, SNR < -15 dB: ~2%
 
-- **Distance-based Path Loss**: SNR decreases with distance using logarithmic model (Simulator.ts:192-223)
-  - Path loss exponent: 2.5 (urban/obstacles environment)
+- **Distance-based Path Loss**: SNR decreases with distance using logarithmic model (Simulator.ts)
+  - **Height-dependent path loss exponent**: ranges from 2.5 (ground level) to 2.0 (200m height)
+    - Average height of sender and receiver nodes determines effective path loss exponent
+    - Formula: `pathLossExponent = 2.5 - (averageHeight / 200) × 0.5`
+    - Higher nodes experience less signal obstruction from buildings
   - Max SNR at 1m: 15 dB, Min SNR at max range: -10 dB
   - Includes log-normal fading (±2 dB random variation)
 
@@ -133,7 +160,7 @@ The simulator implements realistic mesh networking behavior:
 
 - **Retransmission Delay Strategy**: Nodes with worse SNR (farther away) retransmit earlier, those with better SNR (closer) wait longer - this is Meshtastic-inspired behavior
 
-**Important:** Base range (5000m at 20 dBm) is defined in `calculateMaxRange()` method. Change `baseRange` constant to adjust default transmission distance.
+**Important:** Base range (600m at 20 dBm, height 0m) is defined in `calculateMaxRange()` method. The method now takes both `power` and `height` parameters to calculate effective transmission range.
 
 #### 4. **Logging System**
 
@@ -158,9 +185,16 @@ The simulator uses a centralized Logger (Logger.ts) that emits events consumed b
 
 - **index.vue** is the orchestrator:
   - Manages simulator mode (ADD mode via SimulatorMode enum)
-  - Handles map clicks to add nodes with configurable hop limit and role
+  - Handles map clicks to add nodes with configurable hop limit, power, role, and height
   - Provides simulator instance to all components via composable
   - Controls log viewer visibility
+
+**Simulator Public Methods:**
+- `addNode(lat, lng, hopLimit, power, role, height)`: Creates and adds a new node to the network
+- `removeNode(node)`: Removes a node from the network (implemented in Simulator.ts:67-73)
+- `moveNode(node, lat, lng)`: Updates node position
+- `transmitFromNode(node, packet?)`: Initiates packet transmission from a node
+- `nodeById(id)`: Finds a node by its ID
 
 - **MeshNodeMarker.vue**:
   - Renders the node on the map with Leaflet
@@ -177,14 +211,15 @@ The simulator uses a centralized Logger (Logger.ts) that emits events consumed b
   - Highlights on re-click (green glow animation)
 
 - **NodeInfo.vue**:
-  - Displays node statistics (role, state, hop limit, power, range, packets)
+  - Displays node statistics (role, state, hop limit, power, height, range, packets)
   - Emits `transmit`: to send packet from node
   - Emits `edit`: to switch to settings mode
+  - Emits `remove`: to delete the node
 
 - **NodeSettingsForm.vue**:
-  - Form for editing hop limit (1-7) and power (1-20 dBm)
-  - Shows live transmission range calculation
-  - Emits `apply`: with new settings
+  - Form for editing hop limit (1-7), power (1-30 dBm), and height (0-200m)
+  - Shows live transmission range calculation that updates when power or height changes
+  - Emits `apply`: with new settings `{ hopLimit, power, height }`
   - Emits `cancel`: to return to info view
 
 - **AppSidebar.vue**: Combines sub-components:
@@ -248,7 +283,8 @@ No Pinia or Vuex - the reactive `Simulator` instance (accessed via `useSimulator
   - `transmittedPackets`: Array of packet IDs sent by this node
   - `receivedPackets`: Array of packet IDs received by this node
   - `hopLimit`: Configurable hop limit (1-7, default 3)
-  - `power`: Transmit power in dBm (1-20, default 20)
+  - `power`: Transmit power in dBm (1-30, default 20)
+  - `height`: Node height in meters (0-200, default 0)
   - `role`: NodeRole enum (CLIENT, CLIENT_MUTE, ROUTER)
   - `state`: NodeState enum (LISTENING, TRANSMITING, RECEIVING)
 
@@ -282,9 +318,14 @@ When modifying simulation logic, maintain detailed console logging for debugging
 - **NodeContextMenu.vue**: Window management and mode switching only
 - Keep concerns separated for maintainability
 
-### Power and Range Calculations
-- The same `calculateRange()` function is duplicated in both `NodeInfo.vue` and `NodeSettingsForm.vue` for simplicity
-- Both components use identical formula: `Range = 5000м × 10^((Power - 20дБм) / 20)`
+### Power, Height, and Range Calculations
+- The same `calculateRange(power, height)` function is duplicated in both `NodeInfo.vue` and `NodeSettingsForm.vue` for simplicity
+- Both components use identical formula:
+  ```typescript
+  powerAdjustedRange = 600м × 10^((Power - 20дБм) / 20)
+  heightBonus = (height / 200m) × 49400m
+  Range = powerAdjustedRange + heightBonus
+  ```
 - Consider extracting to composable if logic becomes more complex
 
 ### Z-Index Management
