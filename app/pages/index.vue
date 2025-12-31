@@ -46,7 +46,8 @@ import type { BaseNode } from "~/simulator/BaseNode";
 import { SimulatorMode } from "~/simulator/SimulatorMode";
 
 const { simulator } = useSimulator();
-const { hopLimit, defaultRole, defaultHeight } = useSimulatorSettings();
+const { hopLimit, defaultRole, defaultPower, defaultHeight } =
+  useSimulatorSettings();
 
 const show = ref(false);
 
@@ -56,7 +57,7 @@ const onMapClick = (lat: number, lng: number) => {
       lat,
       lng,
       hopLimit.value,
-      20,
+      defaultPower.value,
       defaultRole.value,
       defaultHeight.value,
     );
