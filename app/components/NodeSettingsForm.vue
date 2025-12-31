@@ -2,30 +2,19 @@
   <div class="space-y-3">
     <div class="space-y-3">
       <div>
-        <label class="text-xs text-neutral-500 block mb-1">Лимит прыжков</label>
-        <UInput
-          v-model.number="localForm.hopLimit"
-          type="number"
-          min="1"
-          max="7"
-          size="sm"
-        />
-        <p class="text-xs text-neutral-500 mt-1">От 1 до 7 прыжков</p>
+        <label class="text-xs text-neutral-500 block mb-2"
+          >Лимит прыжков: {{ localForm.hopLimit }}</label
+        >
+        <USlider v-model="localForm.hopLimit" :min="1" :max="7" :step="1" />
       </div>
 
       <div>
-        <label class="text-xs text-neutral-500 block mb-1"
-          >Мощность (дБм)</label
+        <label class="text-xs text-neutral-500 block mb-2"
+          >Мощность: {{ localForm.power }} дБм</label
         >
-        <UInput
-          v-model.number="localForm.power"
-          type="number"
-          min="1"
-          max="20"
-          size="sm"
-        />
+        <USlider v-model="localForm.power" :min="1" :max="30" :step="1" />
         <p class="text-xs text-neutral-500 mt-1">
-          От 1 до 20 дБм • Дальность: {{ calculateRange(localForm.power) }}
+          Дальность: {{ calculateRange(localForm.power) }}
         </p>
       </div>
     </div>
