@@ -33,19 +33,44 @@ export class Simulator {
     hopLimit: number = 3,
     power: number = 20,
     role: NodeRole = NodeRole.CLIENT,
+    height: number = 0,
   ) {
     const id = this.nodes.length + 1;
     let node: BaseNode;
 
     switch (role) {
       case NodeRole.CLIENT:
-        node = new ClientNode(id, lat, lng, hopLimit, power, this.logger);
+        node = new ClientNode(
+          id,
+          lat,
+          lng,
+          hopLimit,
+          power,
+          height,
+          this.logger,
+        );
         break;
       case NodeRole.CLIENT_MUTE:
-        node = new ClientMuteNode(id, lat, lng, hopLimit, power, this.logger);
+        node = new ClientMuteNode(
+          id,
+          lat,
+          lng,
+          hopLimit,
+          power,
+          height,
+          this.logger,
+        );
         break;
       case NodeRole.ROUTER:
-        node = new RouterNode(id, lat, lng, hopLimit, power, this.logger);
+        node = new RouterNode(
+          id,
+          lat,
+          lng,
+          hopLimit,
+          power,
+          height,
+          this.logger,
+        );
         break;
       default:
         throw new Error("Роль не реализована");
@@ -61,6 +86,14 @@ export class Simulator {
 
   nodeById(id: number) {
     return this.nodes.find((item) => item.id === id);
+  }
+
+  removeNode(node: BaseNode) {
+    const index = this.nodes.findIndex((n) => n.id === node.id);
+    if (index !== -1) {
+      this.nodes.splice(index, 1);
+    }
+    this.selectedNodes.delete(node.id);
   }
 
   async transmitFromNode(node: BaseNode, packet?: Packet) {
@@ -132,15 +165,21 @@ export class Simulator {
       // Если нода слышит свой пакет, то ничего не делаем
       if (packet.relayId === targetNode.id) return;
 
-      // Вычисляем максимальную дальность с учетом мощности передатчика
-      const maxRange = this.calculateMaxRange(node.power);
+      // Вычисляем максимальную дальность с учетом мощности и высоты передатчика
+      const maxRange = this.calculateMaxRange(node.power, node.height);
 
       // Если нода слишком далеко, то она не слышит
       const distance = this.calculateDistanceBetweenNodes(node, targetNode);
       if (distance > maxRange) return;
 
       // Вероятность успешного приема также зависит и от SNR
-      const snr = this.calculateSNR(distance, maxRange, node.power);
+      const snr = this.calculateSNR(
+        distance,
+        maxRange,
+        node.power,
+        node,
+        targetNode,
+      );
       const receptionProbability = this.getReceptionProbability(snr);
 
       // Пакет потерян из-за плохого SNR
@@ -194,20 +233,36 @@ export class Simulator {
     return earthRadiusMeters * centralAngle;
   }
 
-  private calculateMaxRange(power: number): number {
-    // Базовые параметры: 20 дБм = 5000м
+  private calculateMaxRange(power: number, height: number): number {
+    // Базовые параметры: 20 дБм, высота 0м = 600м дальности (городская среда, уровень земли)
     const basePower = 20; // дБм
-    const baseRange = 5000; // метров
+    const baseRange = 600; // метров на высоте 0м
 
-    // Формула Friis: каждые 6 дБ удваивают/уменьшают дальность вдвое
+    // Влияние мощности (формула Friis): каждые 6 дБ удваивают/уменьшают дальность вдвое
     // Range = BaseRange * 10^((Power - BasePower) / 20)
     const powerDifference = power - basePower;
-    const rangeFactor = Math.pow(10, powerDifference / 20);
+    const powerFactor = Math.pow(10, powerDifference / 20);
+    const powerAdjustedRange = baseRange * powerFactor;
 
-    return baseRange * rangeFactor;
+    // Влияние высоты: линейная модель от 600м до 50км
+    // На высоте 0м: 600м
+    // На высоте 200м: 50км
+    // Линейная интерполяция: +247м за каждый метр высоты
+    const maxRangeAtMaxHeight = 50000; // 50км на высоте 200м
+    const maxHeight = 200;
+    const heightBonus =
+      (height / maxHeight) * (maxRangeAtMaxHeight - baseRange);
+
+    return powerAdjustedRange + heightBonus;
   }
 
-  private calculateSNR(distance: number, maxRange: number, power: number) {
+  private calculateSNR(
+    distance: number,
+    maxRange: number,
+    power: number,
+    senderNode: BaseNode,
+    receiverNode: BaseNode,
+  ) {
     // SNR уменьшается с расстоянием (логарифмическая модель path loss)
     // Базовые параметры для мощности 20 дБм
     const basePower = 20; // дБм
@@ -219,8 +274,20 @@ export class Simulator {
     const powerBonus = power - basePower;
     const maxSNR = baseMaxSNR + powerBonus;
 
-    // Path loss exponent: 2 = free space, 2.5-3 = urban/obstacles
-    const pathLossExponent = 2.5;
+    // Базовый path loss exponent для городской среды
+    const basePathLossExponent = 2.5;
+
+    // Рассчитываем среднюю высоту между двумя узлами
+    const averageHeight = (senderNode.height + receiverNode.height) / 2;
+
+    // Коэффициент снижения влияния застройки на основе высоты
+    // При 0м: коэффициент = 0 (полное влияние застройки, path loss = 2.5)
+    // При 100м: коэффициент = 0.5 (path loss = 2.25)
+    // При 200м: коэффициент = 1.0 (минимальное влияние застройки, path loss = 2.0)
+    const heightFactor = Math.min(1.0, averageHeight / 200);
+
+    // Эффективный path loss exponent: от 2.5 (земля) до 2.0 (высота)
+    const pathLossExponent = basePathLossExponent - heightFactor * 0.5;
 
     // Reference distance (1 метр)
     const d0 = 1;

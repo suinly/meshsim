@@ -53,6 +53,7 @@
               :node="node"
               @transmit="transmitPacket"
               @edit="isEditMode = true"
+              @remove="removeNode"
             />
 
             <!-- Режим редактирования -->
@@ -142,9 +143,18 @@ function transmitPacket() {
   simulator.transmitFromNode(props.node);
 }
 
-function applySettings(settings: { hopLimit: number; power: number }) {
+function removeNode() {
+  simulator.removeNode(props.node);
+}
+
+function applySettings(settings: {
+  hopLimit: number;
+  power: number;
+  height: number;
+}) {
   props.node.hopLimit = settings.hopLimit;
   props.node.power = settings.power;
+  props.node.height = settings.height;
   isEditMode.value = false;
 }
 
