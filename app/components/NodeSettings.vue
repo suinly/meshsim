@@ -1,17 +1,17 @@
 <template>
   <UForm
+    v-if="node"
     :schema="schema"
     :state="state"
     class="space-y-4"
     @submit="onSubmit"
-    v-if="node"
   >
     <p>Настройки ноды #{{ node.id }}</p>
     <UFormField label="Лимит прыжков (hopLimit)" name="hopLimit">
       <UInputNumber v-model="state.hopLimit" />
     </UFormField>
 
-    <UButton type="submit">Применить</UButton>
+    <UButton type="submit"> Применить </UButton>
   </UForm>
 </template>
 

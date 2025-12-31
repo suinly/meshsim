@@ -18,8 +18,14 @@
         <span class="font-medium">{{ node.power }} дБм</span>
       </div>
       <div class="flex justify-between">
+        <span class="text-neutral-500">Высота:</span>
+        <span class="font-medium">{{ node.height }} м</span>
+      </div>
+      <div class="flex justify-between">
         <span class="text-neutral-500">Дальность:</span>
-        <span class="font-medium">{{ calculateRange(node.power) }}</span>
+        <span class="font-medium">{{
+          calculateRange(node.power, node.height)
+        }}</span>
       </div>
       <div class="flex justify-between">
         <span class="text-neutral-500">Передано пакетов:</span>
@@ -32,20 +38,9 @@
     </div>
 
     <div
-      class="pt-2 border-t border-neutral-200 dark:border-neutral-800 space-y-2"
+      class="pt-2 border-t border-neutral-200 dark:border-neutral-800 space-x-1"
     >
       <UButton
-        block
-        color="neutral"
-        variant="soft"
-        icon="i-lucide-settings"
-        size="sm"
-        @click="emit('edit')"
-      >
-        Настройки
-      </UButton>
-      <UButton
-        block
         color="primary"
         variant="solid"
         icon="i-lucide-send"
@@ -54,6 +49,20 @@
       >
         Передать пакет
       </UButton>
+      <UButton
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-settings"
+        size="sm"
+        @click="emit('edit')"
+      />
+      <UButton
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-trash"
+        size="sm"
+        @click="emit('remove')"
+      />
     </div>
   </div>
 </template>
@@ -70,6 +79,7 @@ defineProps<{
 const emit = defineEmits<{
   (e: "transmit"): void;
   (e: "edit"): void;
+  (e: "remove"): void;
 }>();
 
 function getRoleLabel(role: NodeRole): string {
@@ -98,14 +108,22 @@ function getStateLabel(state: NodeState): string {
   }
 }
 
-function calculateRange(power: number): string {
+function calculateRange(power: number, height: number): string {
   // Используем ту же формулу, что и в симуляторе
   const basePower = 20; // дБм
-  const baseRange = 5000; // метров
+  const baseRange = 600; // метров на высоте 0м
 
+  // Влияние мощности
   const powerDifference = power - basePower;
-  const rangeFactor = Math.pow(10, powerDifference / 20);
-  const range = baseRange * rangeFactor;
+  const powerFactor = Math.pow(10, powerDifference / 20);
+  const powerAdjustedRange = baseRange * powerFactor;
+
+  // Влияние высоты: линейная модель от 600м до 50км
+  const maxRangeAtMaxHeight = 50000;
+  const maxHeight = 200;
+  const heightBonus = (height / maxHeight) * (maxRangeAtMaxHeight - baseRange);
+
+  const range = powerAdjustedRange + heightBonus;
 
   // Форматируем для отображения
   if (range >= 1000) {

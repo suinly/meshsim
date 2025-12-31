@@ -8,19 +8,19 @@
 
         <div class="flex">
           <UButton
-            icon="i-lucide-panel-top-close"
             v-if="!compact"
+            icon="i-lucide-panel-top-close"
             color="neutral"
             variant="ghost"
             @click="compact = true"
-          ></UButton>
+          />
           <UButton
-            icon="i-lucide-panel-top-open"
             v-else
+            icon="i-lucide-panel-top-open"
             color="neutral"
             variant="ghost"
             @click="compact = false"
-          ></UButton>
+          />
 
           <UColorModeButton />
 

@@ -1,5 +1,3 @@
-import type { BaseNode } from "./BaseNode";
-
 export class Packet {
   hopLimit: number;
 

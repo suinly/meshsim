@@ -1,8 +1,7 @@
-import type { CadTransmitter } from "./CADTransmitter";
 import type { Logger } from "./Logger";
-import { NodeRole } from "./NodeRole";
+import type { NodeRole } from "./NodeRole";
 import { NodeState } from "./NodeState";
-import { Packet } from "./Packet";
+import type { Packet } from "./Packet";
 
 export abstract class BaseNode {
   constructor(
@@ -11,6 +10,7 @@ export abstract class BaseNode {
     public lng: number,
     public hopLimit: number = 3,
     public power: number = 20,
+    public height: number = 0,
     private logger: Logger,
   ) {}
 
