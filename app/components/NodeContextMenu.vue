@@ -53,6 +53,7 @@
               :node="node"
               @transmit="transmitPacket"
               @edit="isEditMode = true"
+              @remove="removeNode"
             />
 
             <!-- Режим редактирования -->
@@ -140,6 +141,10 @@ function handleTouchStart() {
 
 function transmitPacket() {
   simulator.transmitFromNode(props.node);
+}
+
+function removeNode() {
+  simulator.removeNode(props.node);
 }
 
 function applySettings(settings: { hopLimit: number; power: number }) {

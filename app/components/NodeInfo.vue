@@ -32,20 +32,9 @@
     </div>
 
     <div
-      class="pt-2 border-t border-neutral-200 dark:border-neutral-800 space-y-2"
+      class="pt-2 border-t border-neutral-200 dark:border-neutral-800 space-x-1"
     >
       <UButton
-        block
-        color="neutral"
-        variant="soft"
-        icon="i-lucide-settings"
-        size="sm"
-        @click="emit('edit')"
-      >
-        Настройки
-      </UButton>
-      <UButton
-        block
         color="primary"
         variant="solid"
         icon="i-lucide-send"
@@ -53,6 +42,22 @@
         @click="emit('transmit')"
       >
         Передать пакет
+      </UButton>
+      <UButton
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-settings"
+        size="sm"
+        @click="emit('edit')"
+      >
+      </UButton>
+      <UButton
+        color="neutral"
+        variant="soft"
+        icon="i-lucide-trash"
+        size="sm"
+        @click="emit('remove')"
+      >
       </UButton>
     </div>
   </div>
@@ -70,6 +75,7 @@ defineProps<{
 const emit = defineEmits<{
   (e: "transmit"): void;
   (e: "edit"): void;
+  (e: "remove"): void;
 }>();
 
 function getRoleLabel(role: NodeRole): string {

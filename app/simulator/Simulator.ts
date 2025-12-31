@@ -63,6 +63,14 @@ export class Simulator {
     return this.nodes.find((item) => item.id === id);
   }
 
+  removeNode(node: BaseNode) {
+    const index = this.nodes.findIndex((n) => n.id === node.id);
+    if (index !== -1) {
+      this.nodes.splice(index, 1);
+    }
+    this.selectedNodes.delete(node.id);
+  }
+
   async transmitFromNode(node: BaseNode, packet?: Packet) {
     if (!packet) {
       packet = new Packet(
