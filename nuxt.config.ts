@@ -71,13 +71,6 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2025-01-15",
 
-  icon: {
-    clientBundle: {
-      scan: true,
-      sizeLimitKb: 512,
-    },
-  },
-
   nitro: {
     prerender: {
       failOnError: false,
@@ -92,6 +85,13 @@ export default defineNuxtConfig({
         commaDangle: "never",
         braceStyle: "1tbs",
       },
+    },
+  },
+
+  icon: {
+    clientBundle: {
+      scan: true,
+      sizeLimitKb: 512,
     },
   },
 });

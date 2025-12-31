@@ -147,9 +147,14 @@ function removeNode() {
   simulator.removeNode(props.node);
 }
 
-function applySettings(settings: { hopLimit: number; power: number }) {
+function applySettings(settings: {
+  hopLimit: number;
+  power: number;
+  height: number;
+}) {
   props.node.hopLimit = settings.hopLimit;
   props.node.power = settings.power;
+  props.node.height = settings.height;
   isEditMode.value = false;
 }
 

@@ -14,8 +14,16 @@
         >
         <USlider v-model="localForm.power" :min="1" :max="30" :step="1" />
         <p class="text-xs text-neutral-500 mt-1">
-          Дальность: {{ calculateRange(localForm.power) }}
+          Дальность: {{ calculateRange(localForm.power, localForm.height) }}
         </p>
+      </div>
+
+      <div>
+        <label class="text-xs text-neutral-500 block mb-2"
+          >Высота: {{ localForm.height }} м</label
+        >
+        <USlider v-model="localForm.height" :min="0" :max="200" :step="1" />
+        <p class="text-xs text-neutral-500 mt-1">От уровня земли до 200м</p>
       </div>
     </div>
 
@@ -54,19 +62,24 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "apply", settings: { hopLimit: number; power: number }): void;
+  (
+    e: "apply",
+    settings: { hopLimit: number; power: number; height: number },
+  ): void;
   (e: "cancel"): void;
 }>();
 
 const localForm = reactive({
   hopLimit: props.node.hopLimit,
   power: props.node.power,
+  height: props.node.height,
 });
 
 function handleApply() {
   emit("apply", {
     hopLimit: localForm.hopLimit,
     power: localForm.power,
+    height: localForm.height,
   });
 }
 
@@ -76,17 +89,26 @@ watch(
   (node) => {
     localForm.hopLimit = node.hopLimit;
     localForm.power = node.power;
+    localForm.height = node.height;
   },
 );
 
-function calculateRange(power: number): string {
+function calculateRange(power: number, height: number): string {
   // Используем ту же формулу, что и в симуляторе
   const basePower = 20; // дБм
-  const baseRange = 5000; // метров
+  const baseRange = 600; // метров на высоте 0м
 
+  // Влияние мощности
   const powerDifference = power - basePower;
-  const rangeFactor = Math.pow(10, powerDifference / 20);
-  const range = baseRange * rangeFactor;
+  const powerFactor = Math.pow(10, powerDifference / 20);
+  const powerAdjustedRange = baseRange * powerFactor;
+
+  // Влияние высоты: линейная модель от 600м до 50км
+  const maxRangeAtMaxHeight = 50000;
+  const maxHeight = 200;
+  const heightBonus = (height / maxHeight) * (maxRangeAtMaxHeight - baseRange);
+
+  const range = powerAdjustedRange + heightBonus;
 
   // Форматируем для отображения
   if (range >= 1000) {

@@ -18,24 +18,26 @@
       class="fixed z-999 overflow-y-auto p-4 w-[320px] top-0 right-0"
     />
     <UButton
+      v-if="!show"
       class="fixed z-999 bottom-4 left-4"
       color="neutral"
       variant="soft"
-      @click="show = true"
-      v-if="!show"
       icon="i-lucide-panel-bottom-open"
-      >Показать панель логов</UButton
+      @click="show = true"
     >
+      Показать панель логов
+    </UButton>
     <UButton
       v-else
-      @click="show = false"
       class="fixed z-999 bottom-[300px] left-4"
       icon="i-lucide-panel-bottom-close"
       color="neutral"
       variant="soft"
-      >Скрыть панель логов</UButton
+      @click="show = false"
     >
-    <AppFooter class="fixed z-999 h-[300px] p-4 w-full bottom-0" v-if="show" />
+      Скрыть панель логов
+    </UButton>
+    <AppFooter v-if="show" class="fixed z-999 h-[300px] p-4 w-full bottom-0" />
   </div>
 </template>
 
@@ -50,7 +52,7 @@ const show = ref(false);
 
 const onMapClick = (lat: number, lng: number) => {
   if (simulator.mode == SimulatorMode.ADD) {
-    simulator.addNode(lat, lng, hopLimit.value, 20, defaultRole.value);
+    simulator.addNode(lat, lng, hopLimit.value, 20, defaultRole.value, 0);
   } else {
     // Клик по карте (не по ноде) сбрасывает выделение
     simulator.selectedNodes.clear();
