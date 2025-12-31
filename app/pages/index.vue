@@ -46,13 +46,21 @@ import type { BaseNode } from "~/simulator/BaseNode";
 import { SimulatorMode } from "~/simulator/SimulatorMode";
 
 const { simulator } = useSimulator();
-const { hopLimit, defaultRole } = useSimulatorSettings();
+const { hopLimit, defaultRole, defaultPower, defaultHeight } =
+  useSimulatorSettings();
 
 const show = ref(false);
 
 const onMapClick = (lat: number, lng: number) => {
   if (simulator.mode == SimulatorMode.ADD) {
-    simulator.addNode(lat, lng, hopLimit.value, 20, defaultRole.value, 0);
+    simulator.addNode(
+      lat,
+      lng,
+      hopLimit.value,
+      defaultPower.value,
+      defaultRole.value,
+      defaultHeight.value,
+    );
   } else {
     // Клик по карте (не по ноде) сбрасывает выделение
     simulator.selectedNodes.clear();
