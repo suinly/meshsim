@@ -96,6 +96,66 @@ export class Simulator {
     this.selectedNodes.delete(node.id);
   }
 
+  changeNodeRole(
+    node: BaseNode,
+    newRole: NodeRole,
+    hopLimit: number,
+    power: number,
+    height: number,
+  ) {
+    // Запоминаем индекс и данные узла
+    const index = this.nodes.findIndex((n) => n.id === node.id);
+    if (index === -1) return;
+
+    const { id, lat, lng } = node;
+
+    // Создаем новый узел с нужной ролью
+    let newNode: BaseNode;
+
+    switch (newRole) {
+      case NodeRole.CLIENT:
+        newNode = new ClientNode(
+          id,
+          lat,
+          lng,
+          hopLimit,
+          power,
+          height,
+          this.logger,
+        );
+        break;
+      case NodeRole.CLIENT_MUTE:
+        newNode = new ClientMuteNode(
+          id,
+          lat,
+          lng,
+          hopLimit,
+          power,
+          height,
+          this.logger,
+        );
+        break;
+      case NodeRole.ROUTER:
+        newNode = new RouterNode(
+          id,
+          lat,
+          lng,
+          hopLimit,
+          power,
+          height,
+          this.logger,
+        );
+        break;
+      default:
+        throw new Error("Роль не реализована");
+    }
+
+    // Заменяем старый узел на новый с тем же индексом
+    this.nodes.splice(index, 1, newNode);
+
+    this.logger.info(`Роль узла изменена на ${newRole}`, newNode);
+  }
+
   async transmitFromNode(node: BaseNode, packet?: Packet) {
     if (!packet) {
       packet = new Packet(
