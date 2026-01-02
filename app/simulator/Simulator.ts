@@ -384,4 +384,146 @@ export class Simulator {
 
     return 1 / (1 + Math.exp(-k * (snr - threshold)));
   }
+
+  // Получить группы узлов, находящихся в одном месте
+  getNodeGroups(): Map<string, BaseNode[]> {
+    const groups = new Map<string, BaseNode[]>();
+    const threshold = 0.00001; // ~1 метр в градусах
+
+    this.nodes.forEach((node) => {
+      // Округляем координаты для группировки
+      const key = `${node.lat.toFixed(5)}_${node.lng.toFixed(5)}`;
+
+      // Проверяем, есть ли уже группа с близкими координатами
+      let foundGroup = false;
+      for (const [groupKey, groupNodes] of groups.entries()) {
+        const firstNode = groupNodes[0];
+        if (!firstNode) continue;
+
+        const latDiff = Math.abs(firstNode.lat - node.lat);
+        const lngDiff = Math.abs(firstNode.lng - node.lng);
+
+        if (latDiff < threshold && lngDiff < threshold) {
+          groupNodes.push(node);
+          foundGroup = true;
+          break;
+        }
+      }
+
+      if (!foundGroup) {
+        groups.set(key, [node]);
+      }
+    });
+
+    // Возвращаем только группы с более чем одним узлом
+    const result = new Map<string, BaseNode[]>();
+    for (const [key, nodes] of groups.entries()) {
+      if (nodes.length > 1) {
+        result.set(key, nodes);
+      }
+    }
+
+    return result;
+  }
+
+  // Экспорт узлов в JSON
+  exportNodes(): string {
+    const nodesData = this.nodes.map((node) => {
+      // Преобразуем enum в строку для JSON
+      let roleString: string;
+      switch (node.role) {
+        case NodeRole.CLIENT:
+          roleString = "CLIENT";
+          break;
+        case NodeRole.CLIENT_MUTE:
+          roleString = "CLIENT_MUTE";
+          break;
+        case NodeRole.ROUTER:
+          roleString = "ROUTER";
+          break;
+        default:
+          roleString = "CLIENT";
+      }
+
+      return {
+        nodeId: String(node.id),
+        role: roleString,
+        latitude: node.lat,
+        longitude: node.lng,
+        altitude: node.height,
+        hopLimit: node.hopLimit,
+        power: node.power,
+      };
+    });
+
+    return JSON.stringify(nodesData, null, 2);
+  }
+
+  // Импорт узлов из JSON
+  importNodes(json: string): void {
+    try {
+      const nodesData = JSON.parse(json);
+
+      if (!Array.isArray(nodesData)) {
+        throw new Error("JSON должен содержать массив узлов");
+      }
+
+      // Очищаем текущие узлы
+      this.nodes = [];
+      this.selectedNodes.clear();
+      this.packetCount = 0;
+
+      // Добавляем узлы из JSON
+      nodesData.forEach((nodeData: any) => {
+        // Проверяем, что роль валидная (принимаем строковые значения из JSON)
+        const roleString = nodeData.role || "CLIENT";
+        let role: NodeRole;
+
+        // Преобразуем строку из JSON в enum
+        switch (roleString) {
+          case "CLIENT":
+            role = NodeRole.CLIENT;
+            break;
+          case "CLIENT_MUTE":
+            role = NodeRole.CLIENT_MUTE;
+            break;
+          case "ROUTER":
+            role = NodeRole.ROUTER;
+            break;
+          default:
+            this.logger.warning(
+              `Неизвестная роль "${nodeData.role}" для узла ${nodeData.nodeId}, используется CLIENT`,
+            );
+            role = NodeRole.CLIENT;
+        }
+
+        const latitude = nodeData.latitude;
+        const longitude = nodeData.longitude;
+        const rawAltitude = nodeData.altitude !== undefined ? nodeData.altitude : 1;
+        const altitude = Math.max(1, Math.min(rawAltitude, 200));
+        const hopLimit = nodeData.hopLimit || 3;
+        const power = nodeData.power || 20;
+
+        // Предупреждаем, если высота была ограничена
+        if (nodeData.altitude !== undefined) {
+          if (nodeData.altitude > 200) {
+            this.logger.warning(
+              `Высота узла ${nodeData.nodeId} ограничена до 200м (было ${nodeData.altitude}м)`,
+            );
+          } else if (nodeData.altitude < 1) {
+            this.logger.warning(
+              `Высота узла ${nodeData.nodeId} увеличена до 1м (было ${nodeData.altitude}м)`,
+            );
+          }
+        }
+
+        this.addNode(latitude, longitude, hopLimit, power, role, altitude);
+      });
+
+      this.logger.info(`Импортировано узлов: ${nodesData.length}`);
+    } catch (error) {
+      this.logger.error(`Ошибка импорта: ${error}`);
+      throw error;
+    }
+  }
 }
