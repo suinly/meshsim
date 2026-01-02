@@ -3,7 +3,7 @@
     <p>Пакет #{{ lastPacketId }}</p>
     <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
       <p>Приняло узлов: {{ receivedNodesCount }}/{{ totalNodesCount }}</p>
-      <p>Покрытие: {{ percentOfReceived.toFixed(2) }}%</p>
+      <p>Покрытие: {{ percentOfReceived }}%</p>
     </div>
   </div>
 </template>
@@ -31,6 +31,9 @@ const receivedNodesCount = computed(() => {
 });
 
 const percentOfReceived = computed(() => {
-  return (receivedNodesCount.value / totalNodesCount.value) * 100;
+  const value = (receivedNodesCount.value / totalNodesCount.value) * 100;
+  if (!value) return 0;
+  if (value === 100) return 100;
+  return value.toFixed(2);
 });
 </script>

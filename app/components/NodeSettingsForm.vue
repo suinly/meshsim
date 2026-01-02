@@ -2,6 +2,33 @@
   <div class="space-y-3">
     <div class="space-y-3">
       <div>
+        <label class="text-xs text-neutral-500 block mb-2">Тип узла</label>
+        <div class="flex gap-2">
+          <AppCheckableButton
+            icon="i-lucide-circle-dot"
+            tooltip="CLIENT"
+            color="warning"
+            :checked="localForm.role == NodeRole.CLIENT"
+            @click="localForm.role = NodeRole.CLIENT"
+          />
+          <AppCheckableButton
+            icon="i-lucide-circle-x"
+            tooltip="CLIENT_MUTE"
+            color="secondary"
+            :checked="localForm.role == NodeRole.CLIENT_MUTE"
+            @click="localForm.role = NodeRole.CLIENT_MUTE"
+          />
+          <AppCheckableButton
+            icon="i-lucide-circle-alert"
+            tooltip="ROUTER"
+            color="error"
+            :checked="localForm.role == NodeRole.ROUTER"
+            @click="localForm.role = NodeRole.ROUTER"
+          />
+        </div>
+      </div>
+
+      <div>
         <label class="text-xs text-neutral-500 block mb-2"
           >Лимит прыжков: {{ localForm.hopLimit }}</label
         >
@@ -56,6 +83,7 @@
 
 <script setup lang="ts">
 import type { BaseNode } from "~/simulator/BaseNode";
+import { NodeRole } from "~/simulator/NodeRole";
 
 const props = defineProps<{
   node: BaseNode;
@@ -64,12 +92,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   (
     e: "apply",
-    settings: { hopLimit: number; power: number; height: number },
+    settings: { hopLimit: number; power: number; height: number; role: NodeRole },
   ): void;
   (e: "cancel"): void;
 }>();
 
 const localForm = reactive({
+  role: props.node.role,
   hopLimit: props.node.hopLimit,
   power: props.node.power,
   height: props.node.height,
@@ -77,6 +106,7 @@ const localForm = reactive({
 
 function handleApply() {
   emit("apply", {
+    role: localForm.role,
     hopLimit: localForm.hopLimit,
     power: localForm.power,
     height: localForm.height,
@@ -87,6 +117,7 @@ function handleApply() {
 watch(
   () => props.node,
   (node) => {
+    localForm.role = node.role;
     localForm.hopLimit = node.hopLimit;
     localForm.power = node.power;
     localForm.height = node.height;
