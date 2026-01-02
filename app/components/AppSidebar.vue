@@ -64,6 +64,7 @@
 
         <AppControls />
         <AppSettings />
+        <AppImportExport />
         <AppStatistic v-if="!compact" />
       </template>
     </div>

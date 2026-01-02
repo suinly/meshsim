@@ -48,10 +48,17 @@ import { SimulatorMode } from "~/simulator/SimulatorMode";
 const { simulator } = useSimulator();
 const { hopLimit, defaultRole, defaultPower, defaultHeight } =
   useSimulatorSettings();
+const spider = useNodeSpider();
 
 const show = ref(false);
 
 const onMapClick = (lat: number, lng: number) => {
+  // Если есть развернутая группа - сворачиваем её (независимо от режима)
+  if (spider.getExpandedGroup()) {
+    spider.collapseAll();
+    return;
+  }
+
   if (simulator.mode == SimulatorMode.ADD) {
     simulator.addNode(
       lat,

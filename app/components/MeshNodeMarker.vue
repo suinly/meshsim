@@ -3,13 +3,16 @@
     :key="node.id"
     :lat-lng="[node.lat, node.lng]"
     :draggable="true"
+    :z-index-offset="markerZIndex"
     @click="onClick"
     @dragend="onDragEnd"
     @contextmenu="onContextMenu"
   >
     <LIcon :icon-size="[30, 30]" :icon-anchor="[15, 15]">
       <div
-        class="relative w-[30px] h-[30px] flex items-center justify-center"
+        class="relative w-[30px] h-[30px] flex items-center justify-center spider-node-container"
+        :class="{ 'node-dimmed': isNodeDimmed }"
+        :style="spiderTransformStyle"
         @touchstart.stop="onTouchStart"
         @touchend.stop="onTouchEnd"
         @touchmove.stop="onTouchMove"
@@ -22,6 +25,14 @@
           <div
             class="w-8 h-8 rounded-full border-2 border-primary-500 bg-primary-500/20"
           />
+        </div>
+
+        <!-- Индикатор группы (пульсирующий круг) -->
+        <div
+          v-if="shouldShowGroupBadge"
+          class="absolute inset-0 flex items-center justify-center pointer-events-none"
+        >
+          <div class="w-8 h-8 rounded-full bg-primary-500/30 group-indicator" />
         </div>
 
         <!-- Индикатор долгого нажатия -->
@@ -80,6 +91,14 @@
         >
           {{ node.id }}
         </div>
+
+        <!-- Badge с количеством узлов в группе -->
+        <div
+          v-if="shouldShowGroupBadge"
+          class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary-500 text-white text-[8px] font-bold flex items-center justify-center z-20 ring-2 ring-white dark:ring-neutral-900"
+        >
+          {{ groupSize }}
+        </div>
       </div>
     </LIcon>
   </LMarker>
@@ -111,11 +130,73 @@ const emit = defineEmits<{
   (e: "click", event: MouseEvent): void;
 }>();
 
+// Spider-эффект для групп узлов
+const spider = useNodeSpider();
+
 // Состояние контекстного меню
 const isContextMenuOpen = ref(false);
 const menuPosition = ref({ x: 0, y: 0 });
 const isLongPressing = ref(false);
 const highlightTrigger = ref(0);
+
+// Размер группы
+const groupSize = computed(() => spider.getGroupSize(props.node));
+
+// Показывать ли badge с количеством узлов
+const shouldShowGroupBadge = computed(() => {
+  // Показываем только если узел в группе и группа НЕ развернута
+  return (
+    spider.isInGroup(props.node) &&
+    !spider.isGroupExpanded(props.node) &&
+    groupSize.value > 1
+  );
+});
+
+// CSS transform для визуального смещения в развернутой группе
+const spiderTransformStyle = computed(() => {
+  const offset = spider.getSpiderOffset(props.node);
+  const isInExpanded = spider.isNodeInExpandedGroup(props.node);
+
+  const style: Record<string, string> = {
+    transition: "transform 0.15s ease-out",
+  };
+
+  if (offset) {
+    style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+  }
+
+  // Поднимаем узлы из развернутой группы поверх всех остальных
+  if (isInExpanded) {
+    style.zIndex = "1000";
+  }
+
+  return style;
+});
+
+// Должен ли узел быть затемнен (когда есть развернутая группа, но этот узел не в ней)
+const isNodeDimmed = computed(() => {
+  const expandedGroup = spider.getExpandedGroup();
+  if (!expandedGroup) return false;
+
+  // Затемняем только если есть развернутая группа и этот узел не в ней
+  return !spider.isNodeInExpandedGroup(props.node);
+});
+
+// Z-index для маркера Leaflet
+const markerZIndex = computed(() => {
+  // Узлы из развернутой группы поверх всех (z-index: 1000)
+  if (spider.isNodeInExpandedGroup(props.node)) {
+    return 1000;
+  }
+
+  // Затемненные узлы внизу (z-index: 1)
+  if (isNodeDimmed.value) {
+    return 1;
+  }
+
+  // Обычные узлы (z-index по умолчанию: 0)
+  return 0;
+});
 
 function onDragEnd(event: LeafletMouseEvent) {
   const { lat, lng } = event.target.getLatLng();
@@ -124,6 +205,27 @@ function onDragEnd(event: LeafletMouseEvent) {
 
 function onClick(event: LeafletMouseEvent) {
   event.originalEvent.stopPropagation();
+
+  // Если есть развернутая группа
+  const expandedGroup = spider.getExpandedGroup();
+  if (expandedGroup) {
+    // Если кликнули на узел не из развернутой группы - сворачиваем группу
+    if (!spider.isNodeInExpandedGroup(props.node)) {
+      spider.collapseAll();
+      return;
+    }
+    // Если кликнули на узел из развернутой группы - передаем пакет
+    emit("click", event.originalEvent);
+    return;
+  }
+
+  // Если узел в группе и группа свернута - раскрываем группу
+  if (spider.isInGroup(props.node) && !spider.isGroupExpanded(props.node)) {
+    spider.expandGroup(props.node);
+    return;
+  }
+
+  // Иначе (узел не в группе, нет развернутых групп) - передаем событие клика (для передачи пакета)
   emit("click", event.originalEvent);
 }
 
@@ -279,6 +381,19 @@ function onTouchMove() {
   }
 }
 
+/* Анимация индикатора группы */
+@keyframes group-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+}
+
 .wave-expand > div {
   animation: expand-wave 0.6s ease-out infinite;
 }
@@ -290,5 +405,25 @@ function onTouchMove() {
 
 .long-press-ring {
   animation: long-press 0.5s ease-in-out infinite;
+}
+
+.group-indicator {
+  animation: group-pulse 2s ease-in-out infinite;
+}
+
+/* Контейнер узла для spider-эффекта */
+.spider-node-container {
+  position: relative;
+  will-change: transform;
+  transition:
+    transform 0.15s ease-out,
+    opacity 0.15s ease-out;
+}
+
+/* Затемнение узлов не из развернутой группы */
+.node-dimmed {
+  opacity: 0.2;
+  pointer-events: auto;
+  z-index: 1 !important;
 }
 </style>
