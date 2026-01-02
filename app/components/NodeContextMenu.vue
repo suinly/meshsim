@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import type { BaseNode } from "~/simulator/BaseNode";
+import type { NodeRole } from "~/simulator/NodeRole";
 
 const props = defineProps<{
   node: BaseNode;
@@ -148,13 +149,26 @@ function removeNode() {
 }
 
 function applySettings(settings: {
+  role: NodeRole;
   hopLimit: number;
   power: number;
   height: number;
 }) {
-  props.node.hopLimit = settings.hopLimit;
-  props.node.power = settings.power;
-  props.node.height = settings.height;
+  // Если роль изменилась, нужно пересоздать узел
+  if (settings.role !== props.node.role) {
+    simulator.changeNodeRole(
+      props.node,
+      settings.role,
+      settings.hopLimit,
+      settings.power,
+      settings.height,
+    );
+  } else {
+    // Если роль не изменилась, просто обновляем параметры
+    props.node.hopLimit = settings.hopLimit;
+    props.node.power = settings.power;
+    props.node.height = settings.height;
+  }
   isEditMode.value = false;
 }
 
